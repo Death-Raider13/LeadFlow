@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Lead Finder + WhatsApp + Email Campaign Tool</title>
+    <style>
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); min-height:100vh; padding:20px; }
+        .container { max-width:1200px; margin:0 auto; background:white; border-radius:15px; box-shadow:0 20px 60px rgba(0,0,0,0.3); overflow:hidden; }
+        .header { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; padding:30px; text-align:center; }
+        .header h1 { font-size:28px; margin-bottom:10px; }
+        .header p { opacity:0.9; font-size:14px; }
+        .tabs { display:flex; background:#f8f9fa; border-bottom:2px solid #e9ecef; }
+        .tab { flex:1; padding:15px 20px; text-align:center; cursor:pointer; font-weight:600; color:#6c757d; transition:all 0.3s; border-bottom:3px solid transparent; }
+        .tab:hover { background:#e9ecef; }
+        .tab.active { color:#667eea; border-bottom-color:#667eea; background:white; }
+        .tab-content { display:none; padding:30px; }
+        .tab-content.active { display:block; }
+        .api-key-section { background:#f8f9fa; padding:20px; border-radius:10px; margin-bottom:25px; border:2px solid #e9ecef; }
+        .api-key-section h3 { color:#667eea; margin-bottom:10px; font-size:18px; }
+        .input-group { margin-bottom:20px; }
+        label { display:block; margin-bottom:8px; color:#495057; font-weight:600; font-size:14px; }
+        input, select, textarea { width:100%; padding:12px; border:2px solid #e9ecef; border-radius:8px; font-size:14px; transition:border-color 0.3s; font-family:inherit; }
+        textarea { min-height:120px; resize:vertical; }
+        input:focus, select:focus, textarea:focus { outline:none; border-color:#667eea; }
+        .button-group { display:flex; gap:10px; margin-bottom:25px; flex-wrap:wrap; }
+        button { padding:14px 24px; border:none; border-radius:8px; font-size:16px; font-weight:600; cursor:pointer; transition:all 0.3s; }
+        .btn-primary { background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); color:white; flex:1; }
+        .btn-secondary { background:#6c757d; color:white; }
+        .btn-success { background:#28a745; color:white; }
+        .btn-test { background:#17a2b8; color:white; padding:10px 20px; font-size:14px; }
+        .loading { text-align:center; padding:20px; color:#667eea; font-weight:600; }
+        .results { margin-top:25px; }
+        .place-card { background:#f8f9fa; border:2px solid #e9ecef; border-radius:10px; padding:20px; margin-bottom:15px; transition:all 0.3s; position:relative; }
+        .place-card:hover { border-color:#667eea; box-shadow:0 5px 15px rgba(102,126,234,0.1); }
+        .place-card.selected { border-color:#28a745; background:#d4edda; }
+        .place-name { font-size:18px; font-weight:700; color:#212529; margin-bottom:10px; }
+        .place-info { color:#6c757d; font-size:14px; margin-bottom:5px; }
+        .api-sources { display:flex; gap:8px; margin-bottom:10px; flex-wrap:wrap; }
+        .api-source { display:inline-block; padding:4px 8px; border-radius:4px; font-size:12px; font-weight:600; }
+        .source-geoapify { background:#d1ecf1; color:#0c5460; }
+        .source-rapidapi { background:#d4edda; color:#155724; }
+        .source-scraperbee { background:#fff3cd; color:#856404; }
+        .contact-info { margin-top:10px; padding-top:10px; border-top:1px solid #dee2e6; }
+        .contact-item { display:flex; align-items:center; gap:8px; margin-top:8px; color:#667eea; font-weight:600; word-break:break-all; }
+        .no-contact { color:#dc3545; font-style:italic; font-size:13px; }
+        .select-checkbox { position:absolute; top:20px; right:20px; }
+        .select-checkbox input[type="checkbox"] { width:20px; height:20px; cursor:pointer; }
+        .error { background:#fff3cd; border:2px solid #ffc107; color:#856404; padding:15px; border-radius:8px; margin-bottom:20px; }
+        .success { background:#d4edda; border:2px solid #28a745; color:#155724; padding:15px; border-radius:8px; margin-bottom:20px; }
+        .note { background:#d1ecf1; border:2px solid #17a2b8; color:#0c5460; padding:15px; border-radius:8px; margin-top:20px; font-size:14px; line-height:1.6; }
+        .warning-box { background:#fff3cd; border:2px solid #ffc107; color:#856404; padding:15px; border-radius:8px; margin-bottom:20px; font-size:14px; line-height:1.6; }
+        small { color:#6c757d; font-size:12px; display:block; margin-top:5px; }
+        .stats-bar { display:flex; justify-content:space-around; background:#f8f9fa; padding:15px; border-radius:8px; margin-bottom:20px; flex-wrap:wrap; gap:15px; }
+        .stat-item { text-align:center; }
+        .stat-number { font-size:24px; font-weight:700; color:#667eea; }
+        .stat-label { font-size:12px; color:#6c757d; margin-top:5px; }
+        .message-preview { background:#f8f9fa; border:2px solid #e9ecef; border-radius:8px; padding:15px; margin-top:15px; font-size:14px; white-space:pre-wrap; }
+        .progress-bar { width:100%; height:30px; background:#e9ecef; border-radius:15px; overflow:hidden; margin:20px 0; }
+        .progress-fill { height:100%; background: linear-gradient(135deg,#667eea 0%,#764ba2 100%); width:0%; transition:width 0.3s; display:flex; align-items:center; justify-content:center; color:white; font-weight:600; font-size:14px; }
+        .campaign-log { background:#f8f9fa; border:2px solid #e9ecef; border-radius:8px; padding:15px; margin-top:20px; max-height:300px; overflow-y:auto; }
+        .log-entry { padding:8px; margin-bottom:8px; border-radius:5px; font-size:13px; }
+        .log-success { background:#d4edda; color:#155724; }
+        .log-error { background:#f8d7da; color:#721c24; }
+        .log-info { background:#d1ecf1; color:#0c5460; }
+        .server-status { display:inline-block; padding:6px 12px; border-radius:20px; font-size:12px; font-weight:600; margin-left:10px; }
+        .server-online { background:#d4edda; color:#155724; }
+        .server-offline { background:#f8d7da; color:#721c24; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Lead Finder + WhatsApp + Email Campaign Tool</h1>
+            <p>Find Leads → Send WhatsApp & Email Campaigns</p>
+        </div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('find-leads')">🔍 Find Leads</div>
+            <div class="tab" onclick="switchTab('send-campaign')">📱 WhatsApp Campaign</div>
+            <div class="tab" onclick="switchTab('email-campaign')">📧 Email Campaign</div>
+        </div>
+
+        <!-- TAB 1: Find Leads -->
+        <div id="find-leads" class="tab-content active">
+            <div class="warning-box">
+                <strong>⚠️ Important: Download Required</strong><br>
+                Due to security restrictions in some viewers, this tool must be downloaded and run locally for full functionality. Save as .html and open in your browser.
+            </div>
+
+            <div class="input-group">
+                <label for="geoapifyKey">Geoapify API Key:</label>
+                <input type="text" id="geoapifyKey" placeholder="Required for finding leads">
+            </div>
+
+            <div class="input-group">
+                <label for="rapidapiKey">RapidAPI Key (Optional):</label>
+                <input type="text" id="rapidapiKey" placeholder="For better contact info">
+            </div>
+
+            <div class="input-group">
+                <label for="scraperbeeKey">ScraperBee Key (Optional):</label>
+                <input type="text" id="scraperbeeKey" placeholder="Extra contact scraping">
+            </div>
+
+            <div class="input-group">
+                <label for="category">Category:</label>
+                <select id="category">
+                    <option value="restaurant">Restaurants</option>
+                    <option value="cafe">Cafes</option>
+                    <option value="hotel">Hotels</option>
+                    <option value="hospital">Hospitals</option>
+                    <option value="school">Schools</option>
+                    <option value="supermarket">Supermarkets</option>
+                    <option value="bank">Banks</option>
+                    <option value="pharmacy">Pharmacies</option>
+                    <option value="gym">Gyms</option>
+                    <option value="bar">Bars</option>
+                </select>
+            </div>
+
+            <div class="input-group">
+                <label for="location">Location (city or address):</label>
+                <input type="text" id="location" placeholder="e.g., Lagos, Nigeria" value="Lagos, Nigeria">
+            </div>
+
+            <div class="input-group">
+                <label for="searchMode">Search Mode:</label>
+                <select id="searchMode">
+                    <option value="random">Random Results (Different Each Time)</option>
+                    <option value="nearest">Nearest First (Consistent)</option>
+                    <option value="explore">Explore Mode (Random Location)</option>
+                </select>
+                <small>Random mode gives different businesses each search</small>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-primary" onclick="searchPlaces()">Search Places</button>
+            </div>
+
+            <div style="text-align:center; margin-bottom:20px;">
+                <button onclick="clearHistory()" style="padding:8px 16px; background:#6c757d; color:white; border:none; border-radius:5px; cursor:pointer; font-size:13px;">
+                    🔄 Clear Seen Places History
+                </button>
+                <div id="historyCount" style="margin-top:8px; color:#6c757d; font-size:13px;"></div>
+            </div>
+
+            <div id="loadingDiv" class="loading" style="display:none;"></div>
+            <div id="errorDiv" class="error" style="display:none;"></div>
+            <div id="resultsDiv" class="results"></div>
+
+            <div class="note">
+                <strong>🎯 How the 3-Tier System Works:</strong><br>
+                1. <strong>Tier 1 - Geoapify:</strong> Finds places using OpenStreetMap data<br>
+                2. <strong>Tier 2 - RapidAPI:</strong> Gets better contact info from Google Maps<br>
+                3. <strong>Tier 3 - ScraperBee:</strong> Scrapes websites for emails, phones, and social media<br>
+                <br>
+                After finding leads, switch to the "WhatsApp Campaign" or "Email Campaign" tabs to contact them!
+            </div>
+        </div>
+
+        <!-- TAB 2: WhatsApp Campaign -->
+        <div id="send-campaign" class="tab-content">
+            <div class="success">
+                <strong>🎉 WhatsApp Sending</strong><br>
+                Using UltraMsg (or your chosen WhatsApp provider).
+            </div>
+
+            <div class="api-key-section">
+                <h3>📱 UltraMsg Authentication</h3>
+                <p>Enter your UltraMsg Instance ID and Token (from dashboard).</p>
+
+                <div class="input-group">
+                    <label for="ultraInstanceId">UltraMsg Instance ID:</label>
+                    <input id="ultraInstanceId" placeholder="e.g. instance152837">
+                </div>
+
+                <div class="input-group">
+                    <label for="ultraToken">UltraMsg Token:</label>
+                    <input id="ultraToken" placeholder="Your token here">
+                </div>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-item"><div class="stat-number" id="foundLeadsCount">0</div><div class="stat-label">Leads Found</div></div>
+                <div class="stat-item"><div class="stat-number" id="withPhoneCount">0</div><div class="stat-label">With Phone Numbers</div></div>
+                <div class="stat-item"><div class="stat-number" id="selectedCount">0</div><div class="stat-label">Selected to Send</div></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="selectAllLeads()">Select All</button>
+                <button class="btn-secondary" onclick="deselectAllLeads()">Deselect All</button>
+                <button class="btn-secondary" onclick="selectOnlyWithPhone()">Select Only With Phone</button>
+            </div>
+
+            <div id="campaignLeadsDiv"></div>
+
+            <div class="input-group">
+                <label for="campaignMessage">WhatsApp Message:</label>
+                <textarea id="campaignMessage" placeholder="Hi {name}, I found your business {business_name} and wanted to reach out..."></textarea>
+                <small>Use {name} and {business_name} as placeholders.</small>
+            </div>
+
+            <div class="message-preview" id="messagePreview" style="display:none;">
+                <strong>Message Preview:</strong><br><span id="previewText"></span>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-success" onclick="sendWhatsAppCampaign()" id="sendCampaignBtn">📤 Send WhatsApp Campaign</button>
+            </div>
+
+            <div id="campaignProgress" style="display:none;">
+                <div class="progress-bar"><div class="progress-fill" id="progressFill">0%</div></div>
+            </div>
+
+            <div id="campaignLog" class="campaign-log" style="display:none;"></div>
+
+            <div class="note">
+                <strong>💡 WhatsApp Notes:</strong><br>
+                • Messages are sent from YOUR WhatsApp via UltraMsg.<br>
+                • Add delays between messages to avoid being flagged.
+            </div>
+        </div>
+
+        <!-- TAB 3: EMAIL Campaign with Gmail SMTP -->
+        <div id="email-campaign" class="tab-content">
+            <div class="success">
+                <strong>📧 Gmail SMTP Email Campaign</strong>
+                <span id="serverStatus" class="server-status server-offline">Backend Offline</span>
+            </div>
+
+            <div class="api-key-section">
+                <h3>⚙️ Backend Server Settings</h3>
+                
+                <div class="input-group">
+                    <label for="backendUrl">Backend Server URL:</label>
+                    <input id="backendUrl" placeholder="http://localhost:3000" value="http://localhost:3000">
+                    <small>Make sure your Node.js backend is running on this URL</small>
+                </div>
+
+                <button class="btn-test" onclick="testServerConnection()">🔌 Test Connection</button>
+
+                <div class="note" style="margin-top:15px;">
+                    <strong>🔧 Backend Setup Instructions:</strong><br>
+                    1. Save server.js and .env files from the artifacts<br>
+                    2. Run: <code>npm install express nodemailer cors body-parser dotenv</code><br>
+                    3. Configure your Gmail credentials in .env file<br>
+                    4. Start server: <code>node server.js</code><br>
+                    5. Server will run on http://localhost:3000
+                </div>
+            </div>
+
+            <div class="api-key-section">
+                <h3>✉️ Email Content</h3>
+
+                <div class="input-group">
+                    <label for="senderName">Sender Name:</label>
+                    <input id="senderName" placeholder="Your Name or Company" value="LeadFlow">
+                </div>
+
+                <div class="input-group">
+                    <label for="manualEmails">➕ Manual Email Addresses (Optional):</label>
+                    <input id="manualEmails" placeholder="test@example.com, another@example.com" style="border: 2px solid #667eea;">
+                    <small>Add your own email addresses here (comma-separated) to test or send to custom recipients. These will be added to your campaign.</small>
+                </div>
+
+                <div class="input-group">
+                    <label for="emailSubject">Email Subject:</label>
+                    <input id="emailSubject" placeholder="Quick message about {business_name}">
+                </div>
+
+                <div class="input-group">
+                    <label for="emailBody">Email Body (HTML allowed):</label>
+                    <textarea id="emailBody" placeholder="Hi {name},<br/><br/>I found your business {business_name} and wanted to reach out..."></textarea>
+                    <small>Use {name} and {business_name} as variables</small>
+                </div>
+            </div>
+
+            <div class="stats-bar">
+                <div class="stat-item"><div class="stat-number" id="foundEmailCount">0</div><div class="stat-label">Leads Found</div></div>
+                <div class="stat-item"><div class="stat-number" id="withEmailCount">0</div><div class="stat-label">With Email</div></div>
+                <div class="stat-item"><div class="stat-number" id="selectedEmailCount">0</div><div class="stat-label">Selected to Email</div></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-secondary" onclick="selectAllEmails()">Select All (Emails)</button>
+                <button class="btn-secondary" onclick="deselectAllLeads()">Deselect All</button>
+                <button class="btn-secondary" onclick="selectOnlyWithEmail()">Select Only With Email</button>
+            </div>
+
+            <div id="emailLeadsDiv"></div>
+
+            <div class="message-preview" id="emailMessagePreview" style="display:none;">
+                <strong>Email Preview (first selected lead):</strong><br/>
+                <strong>Subject:</strong> <span id="previewEmailSubject"></span><br/><br/>
+                <div id="previewEmailBody"></div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn-success" onclick="sendEmailCampaign()" id="sendEmailBtn">📤 Send Email Campaign</button>
+            </div>
+
+            <div id="emailProgress" style="display:none;">
+                <div class="progress-bar"><div class="progress-fill" id="emailProgressFill">0%</div></div>
+            </div>
+
+            <div id="emailCampaignLog" class="campaign-log" style="display:none;"></div>
+
+            <div class="note">
+                <strong>💡 Email Tips</strong><br>
+                • Your Gmail credentials are secure in the backend<br>
+                • Personalize using {name} and {business_name}<br>
+                • Gmail free tier: 500 emails/day<br>
+                • Add delays to avoid triggering spam filters
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- State Variables ---
+        let foundLeads = [];
+        let seenPlaces = new Set();
+        let selectedLeads = new Set();
+
+        // --- Tab Switching ---
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById(tabName).classList.add('active');
+            
+            if (tabName === 'send-campaign') updateCampaignView();
+            if (tabName === 'email-campaign') {
+                updateEmailView();
+                checkServerStatus();
+            }
+        }
+
+        // --- History Management ---
+        function clearHistory() {
+            seenPlaces.clear();
+            updateHistoryCount();
+            alert('✅ Seen places history cleared!');
+        }
+
+        function updateHistoryCount() {
+            const countDiv = document.getElementById('historyCount');
+            countDiv.textContent = seenPlaces.size ? `${seenPlaces.size} business(es) remembered` : '';
+        }
+
+        // --- Backend Server Connection Test ---
+        async function testServerConnection() {
+            const backendUrl = document.getElementById('backendUrl').value.trim();
+            const statusEl = document.getElementById('serverStatus');
+            
+            statusEl.textContent = 'Testing...';
+            statusEl.className = 'server-status server-offline';
+
+            try {
+                const response = await fetch(`${backendUrl}/health`, {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    statusEl.textContent = '✅ Backend Online';
+                    statusEl.className = 'server-status server-online';
+                    alert('✅ Backend server is connected and ready!\n\n' + JSON.stringify(data, null, 2));
+                } else {
+                    throw new Error('Server responded with error');
+                }
+            } catch (error) {
+                statusEl.textContent = '❌ Backend Offline';
+                statusEl.className = 'server-status server-offline';
+                alert('❌ Cannot connect to backend server.\n\nMake sure:\n1. Node.js backend is running (npm start)\n2. URL is correct: ' + backendUrl + '\n3. Server is on port 3000\n\nError: ' + error.message);
+            }
+        }
+
+        async function checkServerStatus() {
+            const backendUrl = document.getElementById('backendUrl').value.trim();
+            const statusEl = document.getElementById('serverStatus');
+            
+            try {
+                const response = await fetch(`${backendUrl}/health`, { method: 'GET' });
+                if (response.ok) {
+                    statusEl.textContent = '✅ Backend Online';
+                    statusEl.className = 'server-status server-online';
+                } else {
+                    throw new Error('Offline');
+                }
+            } catch (error) {
+                statusEl.textContent = '❌ Backend Offline';
+                statusEl.className = 'server-status server-offline';
+            }
+        }
+
+        // --- Search Places Function ---
+        async function searchPlaces() {
+            const geoapifyKey = document.getElementById('geoapifyKey').value.trim();
+            const rapidapiKey = document.getElementById('rapidapiKey').value.trim();
+            const scraperbeeKey = document.getElementById('scraperbeeKey').value.trim();
+            const category = document.getElementById('category').value;
+            const location = document.getElementById('location').value.trim();
+            const searchMode = document.getElementById('searchMode').value;
+
+            const errorDiv = document.getElementById('errorDiv');
+            const loadingDiv = document.getElementById('loadingDiv');
+            const resultsDiv = document.getElementById('resultsDiv');
+
+            errorDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+
+            if (!geoapifyKey) {
+                errorDiv.textContent = '⚠️ Please enter your Geoapify API key';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            if (!location) {
+                errorDiv.textContent = '⚠️ Please enter a location';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            loadingDiv.textContent = 'Starting search...';
+            loadingDiv.style.display = 'block';
+
+            try {
+                // Step 1: Geocode the location
+                loadingDiv.textContent = 'Finding location coordinates...';
+                const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(location)}&apiKey=${geoapifyKey}`;
+                const geocodeResponse = await fetch(geocodeUrl);
+                
+                if (!geocodeResponse.ok) {
+                    throw new Error(`Geocoding failed: ${geocodeResponse.status}`);
+                }
+
+                const geocodeData = await geocodeResponse.json();
+                
+                if (!geocodeData.features || geocodeData.features.length === 0) {
+                    throw new Error('Location not found. Please try a different location.');
+                }
+
+                const coords = geocodeData.features[0].geometry.coordinates;
+                let lon = coords[0];
+                let lat = coords[1];
+
+                // Apply search mode variations
+                let radius = 5000;
+                let offset = 0;
+
+                if (searchMode === 'random') {
+                    radius = Math.floor(Math.random() * (8000 - 3000 + 1)) + 3000;
+                    const possibleOffsets = [0, 10, 20, 30, 40];
+                    offset = possibleOffsets[Math.floor(Math.random() * possibleOffsets.length)];
+                    const shift = 0.01;
+                    lon += (Math.random() - 0.5) * shift;
+                    lat += (Math.random() - 0.5) * shift;
+                } else if (searchMode === 'explore') {
+                    const shift = 0.03;
+                    lon += (Math.random() - 0.5) * shift;
+                    lat += (Math.random() - 0.5) * shift;
+                    radius = 7000;
+                }
+
+                // Category mapping
+                const categoryMap = {
+                    'restaurant': 'catering.restaurant',
+                    'cafe': 'catering.cafe',
+                    'hotel': 'accommodation.hotel',
+                    'hospital': 'healthcare.hospital',
+                    'school': 'education.school',
+                    'supermarket': 'commercial.supermarket',
+                    'bank': 'service.bank',
+                    'pharmacy': 'healthcare.pharmacy',
+                    'gym': 'sport.fitness',
+                    'bar': 'catering.bar'
+                };
+
+                const geoapifyCategory = categoryMap[category] || category;
+
+                // Step 2: Search for places
+                loadingDiv.textContent = '🔍 Tier 1: Searching Geoapify...';
+                const placesUrl = `https://api.geoapify.com/v2/places?categories=${geoapifyCategory}&filter=circle:${lon},${lat},${radius}&bias=proximity:${lon},${lat}&limit=20&offset=${offset}&apiKey=${geoapifyKey}`;
+                const placesResponse = await fetch(placesUrl);
+
+                if (!placesResponse.ok) {
+                    throw new Error(`Geoapify search failed: ${placesResponse.status}`);
+                }
+
+                const placesData = await placesResponse.json();
+
+                if (!placesData.features || placesData.features.length === 0) {
+                    loadingDiv.style.display = 'none';
+                    resultsDiv.innerHTML = '<p class="no-contact">No places found. Try a different category or location.</p>';
+                    return;
+                }
+
+                let places = placesData.features;
+
+                // Filter out seen places (except in nearest mode)
+                if (searchMode !== 'nearest') {
+                    places = places.filter(place => !seenPlaces.has(place.properties.place_id));
+                    places.forEach(place => seenPlaces.add(place.properties.place_id));
+                }
+
+                // Shuffle if not nearest mode
+                if (searchMode !== 'nearest') {
+                    places = shuffleArray(places);
+                }
+
+                // Limit to 10 results
+                places = places.slice(0, 10);
+
+                // Step 3: Get detailed information for each place
+                const detailedPlaces = [];
+
+                for (const place of places) {
+                    const placeId = place.properties.place_id;
+                    const placeName = place.properties.name || 'Unnamed Place';
+                    
+                    loadingDiv.textContent = `Processing: ${placeName}...`;
+
+                    // Get detailed info from Geoapify
+                    const detailsUrl = `https://api.geoapify.com/v2/place-details?id=${placeId}&apiKey=${geoapifyKey}`;
+                    const detailsResponse = await fetch(detailsUrl);
+                    const detailsData = await detailsResponse.json();
+
+                    const geoapifyContact = detailsData.features?.[0]?.properties?.datasource?.raw || {};
+                    let finalContact = { ...geoapifyContact };
+                    let sources = ['geoapify'];
+
+                    const hasPhone = finalContact.phone;
+                    const hasEmail = finalContact.email;
+                    const hasWebsite = finalContact.website;
+
+                    // Tier 2: RapidAPI if we're missing contact info
+                    if ((!hasPhone || !hasEmail) && rapidapiKey) {
+                        try {
+                            loadingDiv.textContent = `🔍 Tier 2: Checking RapidAPI for ${placeName}...`;
+                            const query = `${placeName} ${location}`;
+                            const rapidUrl = `https://local-business-data.p.rapidapi.com/search?query=${encodeURIComponent(query)}&lat=${lat}&lng=${lon}&limit=1&language=en&extract_emails_and_contacts=true`;
+                            
+                            const rapidResponse = await fetch(rapidUrl, {
+                                method: 'GET',
+                                headers: {
+                                    'x-rapidapi-host': 'local-business-data.p.rapidapi.com',
+                                    'x-rapidapi-key': rapidapiKey
+                                }
+                            });
+
+                            if (rapidResponse.ok) {
+                                const rapidData = await rapidResponse.json();
+                                
+                                if (rapidData.data && rapidData.data.length > 0) {
+                                    const rapidPlace = rapidData.data[0];
+                                    
+                                    if (!hasPhone && rapidPlace.phone_number) {
+                                        finalContact.phone = rapidPlace.phone_number;
+                                        sources.push('rapidapi');
+                                    }
+                                    
+                                    if (!hasEmail && rapidPlace.email) {
+                                        finalContact.email = rapidPlace.email;
+                                        sources.push('rapidapi');
+                                    }
+                                    
+                                    if (!hasWebsite && rapidPlace.website) {
+                                        finalContact.website = rapidPlace.website;
+                                        sources.push('rapidapi');
+                                    }
+                                }
+                            }
+                        } catch (rapidError) {
+                            console.error('RapidAPI error:', rapidError);
+                        }
+                    }
+
+                    // Tier 3: ScraperBee if we still need info and have a website
+                    const needsScraping = (!finalContact.phone || !finalContact.email) && finalContact.website && scraperbeeKey;
+                    
+                    if (needsScraping) {
+                        try {
+                            loadingDiv.textContent = `🔍 Tier 3: Scraping website for ${placeName}...`;
+                            
+                            const scraperbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${scraperbeeKey}&url=${encodeURIComponent(finalContact.website)}&render_js=false`;
+                            const scraperbeeResponse = await fetch(scraperbeeUrl);
+
+                            if (scraperbeeResponse.ok) {
+                                const html = await scraperbeeResponse.text();
+
+                                // Extract emails
+                                const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+                                const emails = html.match(emailRegex);
+
+                                // Extract phone numbers
+                                const phoneRegex = /[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}/g;
+                                const phones = html.match(phoneRegex);
+
+                                if (!finalContact.email && emails && emails.length > 0) {
+                                    finalContact.email = emails[0];
+                                    sources.push('scraperbee');
+                                }
+
+                                if (!finalContact.phone && phones && phones.length > 0) {
+                                    finalContact.phone = phones[0];
+                                    sources.push('scraperbee');
+                                }
+                            }
+                        } catch (scraperbeeError) {
+                            console.error('ScraperBee error:', scraperbeeError);
+                        }
+                    }
+
+                    // Add to detailed places
+                    detailedPlaces.push({
+                        id: placeId,
+                        name: placeName,
+                        address: place.properties.formatted || 'No address available',
+                        category: place.properties.categories?.join(', ') || geoapifyCategory,
+                        contact: finalContact,
+                        sources: [...new Set(sources)]
+                    });
+                }
+
+                foundLeads = detailedPlaces;
+                displayResults(detailedPlaces);
+                updateHistoryCount();
+                updateStats();
+
+            } catch (error) {
+                errorDiv.textContent = `❌ Error: ${error.message}`;
+                errorDiv.style.display = 'block';
+                console.error('Search error:', error);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+
+        function displayResults(places) {
+            const resultsDiv = document.getElementById('resultsDiv');
+            
+            if (places.length === 0) {
+                resultsDiv.innerHTML = '<p class="no-contact">No places found.</p>';
+                return;
+            }
+
+            let html = `<h3>Found ${places.length} Place(s)</h3>`;
+
+            places.forEach((place, index) => {
+                const hasContact = place.contact.phone || place.contact.email || place.contact.website;
+                
+                const sourceBadges = place.sources.map(source => {
+                    const names = {
+                        'geoapify': 'Geoapify',
+                        'rapidapi': 'RapidAPI',
+                        'scraperbee': 'ScraperBee'
+                    };
+                    const classes = {
+                        'geoapify': 'source-geoapify',
+                        'rapidapi': 'source-rapidapi',
+                        'scraperbee': 'source-scraperbee'
+                    };
+                    return `<span class="api-source ${classes[source]}">${names[source]}</span>`;
+                }).join('');
+
+                html += `
+                    <div class="place-card">
+                        <div class="api-sources">${sourceBadges}</div>
+                        <div class="place-name">${index + 1}. ${place.name}</div>
+                        <div class="place-info"><strong>Address:</strong> ${place.address}</div>
+                        <div class="place-info"><strong>Category:</strong> ${place.category}</div>
+                        <div class="contact-info">
+                            <strong>Contact Information:</strong>
+                            ${hasContact ? `
+                                ${place.contact.phone ? `<div class="contact-item">📞 <a href="tel:${place.contact.phone}">${place.contact.phone}</a></div>` : ''}
+                                ${place.contact.email ? `<div class="contact-item">📧 <a href="mailto:${place.contact.email}">${place.contact.email}</a></div>` : ''}
+                                ${place.contact.website ? `<div class="contact-item">🌐 <a href="${place.contact.website}" target="_blank">${place.contact.website}</a></div>` : ''}
+                            ` : '<div class="no-contact">No contact information available</div>'}
+                        </div>
+                    </div>
+                `;
+            });
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        // --- WhatsApp Campaign Functions ---
+        async function sendUltraMsgMessage(phone, message, instanceId, token) {
+            try {
+                const cleanPhone = phone.replace(/[^0-9+]/g, '');
+                const response = await fetch(`https://api.ultramsg.com/${instanceId}/messages/chat`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        token: token,
+                        to: cleanPhone,
+                        body: message
+                    })
+                });
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                return { error: error.message };
+            }
+        }
+
+        async function sendWhatsAppCampaign() {
+            const instanceId = document.getElementById("ultraInstanceId").value.trim();
+            const token = document.getElementById("ultraToken").value.trim();
+            const message = document.getElementById("campaignMessage").value.trim();
+
+            if (!instanceId || !token) {
+                alert("⚠️ Please enter your UltraMsg Instance ID and Token");
+                return;
+            }
+
+            if (!message) {
+                alert("⚠️ Please write a message");
+                return;
+            }
+
+            if (selectedLeads.size === 0) {
+                alert("⚠️ Please select at least one lead");
+                return;
+            }
+
+            const leadsToMessage = foundLeads.filter(l => selectedLeads.has(l.id) && l.contact.phone);
+
+            if (leadsToMessage.length === 0) {
+                alert("⚠️ No selected leads have phone numbers");
+                return;
+            }
+
+            if (!confirm(`Send WhatsApp messages to ${leadsToMessage.length} lead(s)?\n\n⚠️ Make sure you have proper consent.`)) {
+                return;
+            }
+
+            document.getElementById('sendCampaignBtn').disabled = true;
+            document.getElementById('campaignProgress').style.display = 'block';
+            document.getElementById('campaignLog').style.display = 'block';
+            document.getElementById('campaignLog').innerHTML = '';
+
+            let sent = 0;
+            let failed = 0;
+
+            for (let i = 0; i < leadsToMessage.length; i++) {
+                const lead = leadsToMessage[i];
+                const progressPct = Math.round(((i + 1) / leadsToMessage.length) * 100);
+                
+                document.getElementById('progressFill').style.width = progressPct + "%";
+                document.getElementById('progressFill').textContent = progressPct + "%";
+
+                const personalizedMessage = message
+                    .replace(/{name}/g, lead.name)
+                    .replace(/{business_name}/g, lead.name);
+
+                try {
+                    addLog(`Sending to ${lead.name} (${lead.contact.phone})...`, 'info');
+                    
+                    const result = await sendUltraMsgMessage(
+                        lead.contact.phone,
+                        personalizedMessage,
+                        instanceId,
+                        token
+                    );
+
+                    if (result.sent || result.id || result.success) {
+                        sent++;
+                        addLog(`✅ Sent to ${lead.name}`, 'success');
+                    } else {
+                        failed++;
+                        addLog(`❌ Failed to send to ${lead.name}: ${JSON.stringify(result)}`, 'error');
+                    }
+                } catch (error) {
+                    failed++;
+                    addLog(`❌ Error sending to ${lead.name}: ${error.message}`, 'error');
+                }
+
+                // Random delay 1-3 seconds
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            }
+
+            addLog(`🎉 Campaign Completed! Sent: ${sent}, Failed: ${failed}`, 'success');
+            document.getElementById('sendCampaignBtn').disabled = false;
+            alert(`Campaign completed!\n✅ Sent: ${sent}\n❌ Failed: ${failed}`);
+        }
+
+        // --- Gmail Email Campaign Functions ---
+        async function sendGmailEmail(to, subject, htmlContent, senderName, backendUrl) {
+            try {
+                const response = await fetch(`${backendUrl}/send-email`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        to: to,
+                        subject: subject,
+                        htmlContent: htmlContent,
+                        senderName: senderName
+                    })
+                });
+
+                const data = await response.json();
+                return { ok: response.ok, data: data };
+            } catch (error) {
+                return { ok: false, error: error.message };
+            }
+        }
+
+        async function sendEmailCampaign() {
+            const backendUrl = document.getElementById('backendUrl').value.trim();
+            const senderName = document.getElementById('senderName').value.trim() || 'LeadFlow';
+            const subjectTemplate = document.getElementById('emailSubject').value.trim();
+            const bodyTemplate = document.getElementById('emailBody').value.trim();
+            const manualEmailsInput = document.getElementById('manualEmails').value.trim();
+
+            if (!backendUrl) {
+                alert('⚠️ Please enter backend server URL');
+                return;
+            }
+
+            if (!subjectTemplate && !bodyTemplate) {
+                alert('⚠️ Please provide email subject or body');
+                return;
+            }
+
+            // Collect leads from selected leads
+            const leadsToEmail = foundLeads.filter(l => selectedLeads.has(l.id) && l.contact.email);
+
+            // Add manual emails if provided
+            const manualEmails = [];
+            if (manualEmailsInput) {
+                const emails = manualEmailsInput.split(',').map(e => e.trim()).filter(e => e);
+                emails.forEach(email => {
+                    // Validate email format
+                    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        manualEmails.push({
+                            id: 'manual_' + email,
+                            name: email.split('@')[0],
+                            address: email,
+                            contact: { email: email }
+                        });
+                    }
+                });
+            }
+
+            // Combine both lists
+            const allRecipients = [...leadsToEmail, ...manualEmails];
+
+            if (allRecipients.length === 0) {
+                alert('⚠️ No recipients selected. Either:\n• Select leads with emails, OR\n• Add manual email addresses');
+                return;
+            }
+
+            const confirmMessage = `Send emails to ${allRecipients.length} recipient(s)?\n\n` +
+                (leadsToEmail.length > 0 ? `• ${leadsToEmail.length} from leads\n` : '') +
+                (manualEmails.length > 0 ? `• ${manualEmails.length} manual email(s)\n` : '') +
+                `\n⚠️ Make sure you have consent and your backend is running.`;
+
+            if (!confirm(confirmMessage)) {
+                return;
+            }
+
+            document.getElementById('sendEmailBtn').disabled = true;
+            document.getElementById('emailProgress').style.display = 'block';
+            document.getElementById('emailCampaignLog').style.display = 'block';
+            document.getElementById('emailCampaignLog').innerHTML = '';
+
+            let sent = 0;
+            let failed = 0;
+
+            for (let i = 0; i < allRecipients.length; i++) {
+                const recipient = allRecipients[i];
+                const progressPct = Math.round(((i + 1) / allRecipients.length) * 100);
+                
+                document.getElementById('emailProgressFill').style.width = progressPct + '%';
+                document.getElementById('emailProgressFill').textContent = progressPct + '%';
+
+                const recipientName = recipient.name || recipient.address.split('@')[0];
+                const recipientEmail = recipient.contact.email;
+
+                const subject = subjectTemplate
+                    .replace(/{name}/g, recipientName)
+                    .replace(/{business_name}/g, recipientName);
+
+                const htmlContent = bodyTemplate
+                    .replace(/{name}/g, recipientName)
+                    .replace(/{business_name}/g, recipientName);
+
+                addLogEmail(`Sending to ${recipientName} (${recipientEmail})...`, 'info');
+
+                try {
+                    const result = await sendGmailEmail(
+                        recipientEmail,
+                        subject,
+                        htmlContent,
+                        senderName,
+                        backendUrl
+                    );
+
+                    if (result.ok && result.data.success) {
+                        sent++;
+                        addLogEmail(`✅ Sent to ${recipientName}`, 'success');
+                    } else {
+                        failed++;
+                        const errorMsg = result.data.error || result.error || 'Unknown error';
+                        addLogEmail(`❌ Failed: ${recipientName} - ${errorMsg}`, 'error');
+                    }
+                } catch (error) {
+                    failed++;
+                    addLogEmail(`❌ Error: ${recipientName} - ${error.message}`, 'error');
+                }
+
+                // Random delay 1-3 seconds to avoid spam filters
+                await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 2000));
+            }
+
+            addLogEmail(`🎉 Email campaign complete! Sent: ${sent}, Failed: ${failed}`, 'success');
+            document.getElementById('sendEmailBtn').disabled = false;
+            alert(`Campaign completed!\n✅ Sent: ${sent}\n❌ Failed: ${failed}`);
+        }
+
+        // --- UI Update Functions ---
+        function updateStats() {
+            document.getElementById('foundLeadsCount').textContent = foundLeads.length;
+            document.getElementById('withPhoneCount').textContent = foundLeads.filter(l => l.contact.phone).length;
+            document.getElementById('selectedCount').textContent = selectedLeads.size;
+
+            document.getElementById('foundEmailCount').textContent = foundLeads.length;
+            document.getElementById('withEmailCount').textContent = foundLeads.filter(l => l.contact.email).length;
+            document.getElementById('selectedEmailCount').textContent = selectedLeads.size;
+        }
+
+        function updateCampaignView() {
+            const campaignDiv = document.getElementById('campaignLeadsDiv');
+            
+            if (foundLeads.length === 0) {
+                campaignDiv.innerHTML = '<div class="note">No leads found yet. Go to "Find Leads" tab first!</div>';
+                return;
+            }
+
+            let html = '<h3>Select Leads to Message:</h3>';
+
+            foundLeads.forEach((lead, index) => {
+                const isSelected = selectedLeads.has(lead.id);
+                const hasPhone = lead.contact.phone;
+
+                html += `
+                    <div class="place-card ${isSelected ? 'selected' : ''}" id="lead-${lead.id}">
+                        <div class="select-checkbox">
+                            <input type="checkbox" 
+                                   ${hasPhone ? '' : 'disabled'} 
+                                   ${isSelected ? 'checked' : ''} 
+                                   onchange="toggleLead('${lead.id}')">
+                        </div>
+                        <div class="place-name">${index + 1}. ${lead.name}</div>
+                        <div class="place-info"><strong>Address:</strong> ${lead.address}</div>
+                        ${hasPhone ? 
+                            `<div class="contact-item">📞 ${lead.contact.phone}</div>` : 
+                            `<div class="no-contact">❌ No phone number - cannot message</div>`
+                        }
+                    </div>
+                `;
+            });
+
+            campaignDiv.innerHTML = html;
+            updateStats();
+        }
+
+        function updateEmailView() {
+            const emailDiv = document.getElementById('emailLeadsDiv');
+            
+            if (foundLeads.length === 0) {
+                emailDiv.innerHTML = '<div class="note">No leads found yet. Go to "Find Leads" tab first!</div>';
+                return;
+            }
+
+            let html = '<h3>Select Leads to Email:</h3>';
+
+            foundLeads.forEach((lead, index) => {
+                const isSelected = selectedLeads.has(lead.id);
+                const hasEmail = lead.contact.email;
+
+                html += `
+                    <div class="place-card ${isSelected ? 'selected' : ''}" id="email-lead-${lead.id}">
+                        <div class="select-checkbox">
+                            <input type="checkbox" 
+                                   ${hasEmail ? '' : 'disabled'} 
+                                   ${isSelected ? 'checked' : ''} 
+                                   onchange="toggleLead('${lead.id}')">
+                        </div>
+                        <div class="place-name">${index + 1}. ${lead.name}</div>
+                        <div class="place-info"><strong>Address:</strong> ${lead.address}</div>
+                        ${hasEmail ? 
+                            `<div class="contact-item">📧 ${lead.contact.email}</div>` : 
+                            `<div class="no-contact">❌ No email - cannot message</div>`
+                        }
+                    </div>
+                `;
+            });
+
+            emailDiv.innerHTML = html;
+            updateStats();
+            updateEmailPreview();
+        }
+
+        function toggleLead(leadId) {
+            if (selectedLeads.has(leadId)) {
+                selectedLeads.delete(leadId);
+            } else {
+                selectedLeads.add(leadId);
+            }
+            updateCampaignView();
+            updateEmailView();
+            updateMessagePreview();
+            updateEmailPreview();
+        }
+
+        function selectAllLeads() {
+            foundLeads.forEach(lead => {
+                if (lead.contact.phone) selectedLeads.add(lead.id);
+            });
+            updateCampaignView();
+            updateEmailView();
+        }
+
+        function deselectAllLeads() {
+            selectedLeads.clear();
+            updateCampaignView();
+            updateEmailView();
+        }
+
+        function selectOnlyWithPhone() {
+            selectedLeads.clear();
+            foundLeads.forEach(lead => {
+                if (lead.contact.phone) selectedLeads.add(lead.id);
+            });
+            updateCampaignView();
+            updateEmailView();
+        }
+
+        function selectAllEmails() {
+            foundLeads.forEach(lead => {
+                if (lead.contact.email) selectedLeads.add(lead.id);
+            });
+            updateEmailView();
+            updateCampaignView();
+        }
+
+        function selectOnlyWithEmail() {
+            selectedLeads.clear();
+            foundLeads.forEach(lead => {
+                if (lead.contact.email) selectedLeads.add(lead.id);
+            });
+            updateEmailView();
+            updateCampaignView();
+        }
+
+        // --- Preview Functions ---
+        document.getElementById('campaignMessage')?.addEventListener('input', updateMessagePreview);
+        document.getElementById('emailBody')?.addEventListener('input', updateEmailPreview);
+        document.getElementById('emailSubject')?.addEventListener('input', updateEmailPreview);
+
+        function updateMessagePreview() {
+            const message = document.getElementById('campaignMessage').value;
+            const previewDiv = document.getElementById('messagePreview');
+            const previewText = document.getElementById('previewText');
+
+            if (message && selectedLeads.size > 0) {
+                const firstLead = foundLeads.find(l => selectedLeads.has(l.id));
+                
+                if (firstLead) {
+                    const preview = message
+                        .replace(/{name}/g, firstLead.name)
+                        .replace(/{business_name}/g, firstLead.name);
+                    
+                    previewText.textContent = preview;
+                    previewDiv.style.display = 'block';
+                }
+            } else {
+                previewDiv.style.display = 'none';
+            }
+        }
+
+        function updateEmailPreview() {
+            const subject = document.getElementById('emailSubject').value;
+            const body = document.getElementById('emailBody').value;
+            const previewDiv = document.getElementById('emailMessagePreview');
+            const subjEl = document.getElementById('previewEmailSubject');
+            const bodyEl = document.getElementById('previewEmailBody');
+
+            if ((subject || body) && selectedLeads.size > 0) {
+                const firstLead = foundLeads.find(l => selectedLeads.has(l.id));
+                
+                if (firstLead) {
+                    subjEl.textContent = subject
+                        .replace(/{name}/g, firstLead.name)
+                        .replace(/{business_name}/g, firstLead.name);
+                    
+                    bodyEl.innerHTML = body
+                        .replace(/{name}/g, firstLead.name)
+                        .replace(/{business_name}/g, firstLead.name);
+                    
+                    previewDiv.style.display = 'block';
+                }
+            } else {
+                previewDiv.style.display = 'none';
+            }
+        }
+
+        // --- Logging Functions ---
+        function addLog(message, type) {
+            const logDiv = document.getElementById('campaignLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = message;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        function addLogEmail(message, type) {
+            const logDiv = document.getElementById('emailCampaignLog');
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${type}`;
+            entry.textContent = message;
+            logDiv.appendChild(entry);
+            logDiv.scrollTop = logDiv.scrollHeight;
+        }
+
+        // --- Initialize ---
+        updateStats();
+    </script>
+</body>
+</html>

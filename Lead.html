@@ -1,0 +1,818 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Places Finder - 3-Tier System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .content {
+            padding: 30px;
+        }
+        
+        .api-key-section {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border: 2px solid #e9ecef;
+        }
+        
+        .api-key-section h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .api-key-section p {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 15px;
+            line-height: 1.6;
+        }
+        
+        .api-key-section ol {
+            margin-left: 20px;
+            color: #495057;
+            font-size: 14px;
+            line-height: 1.8;
+        }
+        
+        .api-key-section a {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
+        }
+        
+        .api-key-section a:hover {
+            text-decoration: underline;
+        }
+        
+        .api-keys-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 768px) {
+            .api-keys-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        
+        .input-group {
+            margin-bottom: 20px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #495057;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        
+        .btn-search {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-search:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .results {
+            margin-top: 25px;
+        }
+        
+        .results h3 {
+            color: #495057;
+            margin-bottom: 15px;
+            font-size: 20px;
+        }
+        
+        .place-card {
+            background: #f8f9fa;
+            border: 2px solid #e9ecef;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s;
+        }
+        
+        .place-card:hover {
+            border-color: #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+        }
+        
+        .place-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #212529;
+            margin-bottom: 10px;
+        }
+        
+        .place-info {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        
+        .place-info strong {
+            color: #495057;
+        }
+        
+        .api-sources {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .api-source {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .source-geoapify {
+            background: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .source-rapidapi {
+            background: #d4edda;
+            color: #155724;
+        }
+        
+        .source-scraperbee {
+            background: #fff3cd;
+            color: #856404;
+        }
+        
+        .contact-info {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid #dee2e6;
+        }
+        
+        .contact-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 8px;
+            color: #667eea;
+            font-weight: 600;
+            word-break: break-all;
+        }
+        
+        .contact-item a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .contact-item a:hover {
+            text-decoration: underline;
+        }
+        
+        .no-contact {
+            color: #dc3545;
+            font-style: italic;
+            font-size: 13px;
+        }
+        
+        .error {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .note {
+            background: #d1ecf1;
+            border: 2px solid #17a2b8;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .warning-box {
+            background: #fff3cd;
+            border: 2px solid #ffc107;
+            color: #856404;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+        
+        .warning-box strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 16px;
+        }
+        
+        small {
+            color: #6c757d;
+            font-size: 12px;
+            display: block;
+            margin-top: 5px;
+        }
+        
+        .tier-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+        
+        .tier-1 { background: #cce5ff; color: #004085; }
+        .tier-2 { background: #d4edda; color: #155724; }
+        .tier-3 { background: #fff3cd; color: #856404; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Ultimate Places Finder</h1>
+            <p>3-Tier Intelligence System: Geoapify → RapidAPI → ScraperBee</p>
+        </div>
+        
+        <div class="content">
+            <div class="warning-box">
+                <strong>⚠️ Important: Download Required</strong>
+                Due to security restrictions in Claude's artifact viewer, this tool must be downloaded and run locally. Click "Copy", save as .html, and open in your browser.
+            </div>
+            
+            <div class="api-key-section">
+                <h3>📝 Three-Tier System Setup</h3>
+                
+                <p><strong>Tier 1: Geoapify <span class="tier-badge tier-1">REQUIRED</span></strong></p>
+                <ol>
+                    <li>Visit <a href="https://myprojects.geoapify.com/register" target="_blank">Geoapify</a> → Sign up free</li>
+                    <li>Create project → Copy API key</li>
+                    <li>Free: 3,000 requests/day</li>
+                </ol>
+                
+                <p style="margin-top: 15px;"><strong>Tier 2: RapidAPI <span class="tier-badge tier-2">OPTIONAL</span></strong></p>
+                <ol>
+                    <li>Visit <a href="https://rapidapi.com/auth/sign-up" target="_blank">RapidAPI</a> → Sign up free</li>
+                    <li>Subscribe to <a href="https://rapidapi.com/letscrape-6bRBa3QguO5/api/local-business-data" target="_blank">Local Business Data</a></li>
+                    <li>Choose FREE BASIC plan</li>
+                    <li>Apps → Default Application → Security → Copy key</li>
+                    <li>Free: 100+ requests/month</li>
+                </ol>
+                
+                <p style="margin-top: 15px;"><strong>Tier 3: ScraperBee <span class="tier-badge tier-3">OPTIONAL</span></strong></p>
+                <ol>
+                    <li>Visit <a href="https://app.scrapingbee.com/account/register" target="_blank">ScraperBee</a> → Sign up free</li>
+                    <li>Copy your API key from dashboard</li>
+                    <li>Free: 1,000 credits (scrapes websites for emails/phones/social)</li>
+                </ol>
+            </div>
+            
+            <div class="api-keys-grid">
+                <div class="input-group">
+                    <label for="geoapifyKey">Geoapify <span class="tier-badge tier-1">TIER 1</span></label>
+                    <input type="text" id="geoapifyKey" placeholder="Required">
+                </div>
+                
+                <div class="input-group">
+                    <label for="rapidapiKey">RapidAPI <span class="tier-badge tier-2">TIER 2</span></label>
+                    <input type="text" id="rapidapiKey" placeholder="Optional">
+                    <small>Better Google Maps data</small>
+                </div>
+                
+                <div class="input-group">
+                    <label for="scraperbeeKey">ScraperBee <span class="tier-badge tier-3">TIER 3</span></label>
+                    <input type="text" id="scraperbeeKey" placeholder="Optional">
+                    <small>Scrapes websites for contacts</small>
+                </div>
+            </div>
+            
+            <div class="input-group">
+                <label for="category">Category:</label>
+                <select id="category">
+                    <option value="restaurant">Restaurants</option>
+                    <option value="cafe">Cafes</option>
+                    <option value="hotel">Hotels</option>
+                    <option value="hospital">Hospitals</option>
+                    <option value="school">Schools</option>
+                    <option value="supermarket">Supermarkets</option>
+                    <option value="bank">Banks</option>
+                    <option value="pharmacy">Pharmacies</option>
+                    <option value="gym">Gyms</option>
+                    <option value="bar">Bars</option>
+                </select>
+            </div>
+            
+            <div class="input-group">
+                <label for="location">Location (city or address):</label>
+                <input type="text" id="location" placeholder="e.g., Lagos, Nigeria" value="Lagos, Nigeria">
+            </div>
+            
+            <div class="input-group">
+                <label for="searchMode">Search Variety Mode:</label>
+                <select id="searchMode">
+                    <option value="random">Random Results (Different Each Time)</option>
+                    <option value="nearest">Nearest First (Consistent)</option>
+                    <option value="explore">Explore Mode (Random Location)</option>
+                </select>
+                <small>Random mode gives different businesses each search</small>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn-search" onclick="searchPlaces()">Search Places</button>
+            </div>
+            
+            <div style="text-align: center; margin-bottom: 20px;">
+                <button onclick="clearHistory()" style="padding: 8px 16px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 13px;">
+                    🔄 Clear Seen Places History
+                </button>
+                <div id="historyCount" style="margin-top: 8px; color: #6c757d; font-size: 13px;"></div>
+            </div>
+            
+            <div id="loadingDiv" class="loading" style="display: none;"></div>
+            
+            <div id="errorDiv" class="error" style="display: none;"></div>
+            
+            <div id="resultsDiv" class="results"></div>
+            
+            <div class="note">
+                <strong>🎯 How the 3-Tier System Works:</strong><br>
+                1. <strong>Tier 1 - Geoapify:</strong> Finds places using OpenStreetMap data<br>
+                2. <strong>Tier 2 - RapidAPI:</strong> If no contact info, checks Google Maps data<br>
+                3. <strong>Tier 3 - ScraperBee:</strong> If still missing info and website exists, scrapes the website for emails, phone numbers, and social media links<br>
+                <br>
+                <strong>🔍 ScraperBee extracts:</strong> Emails, phone numbers, WhatsApp, Facebook, Instagram, Twitter, LinkedIn from actual websites!<br>
+                <strong>💡 Smart Usage:</strong> Each tier only activates if previous tier lacks contact info - saves your API quotas!<br>
+                <br>
+                <strong>🎲 Search Variety Modes:</strong><br>
+                • <strong>Random Results:</strong> Different businesses each search (varies radius, offset, and location)<br>
+                • <strong>Nearest First:</strong> Always shows closest businesses (consistent results)<br>
+                • <strong>Explore Mode:</strong> Searches random areas within ~3km of your location for discovery<br>
+                <br>
+                <strong>🧠 Smart Memory:</strong> Remembers shown businesses and won't repeat them until you clear history!
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Store previous results to avoid repetition
+        let seenPlaces = new Set();
+        
+        function clearHistory() {
+            seenPlaces.clear();
+            updateHistoryCount();
+            alert('✅ Seen places history cleared! You may now see previously shown businesses again.');
+        }
+        
+        function updateHistoryCount() {
+            const countDiv = document.getElementById('historyCount');
+            if (seenPlaces.size > 0) {
+                countDiv.textContent = `${seenPlaces.size} business(es) remembered (won't show again)`;
+            } else {
+                countDiv.textContent = '';
+            }
+        }
+        
+        async function searchPlaces() {
+            const geoapifyKey = document.getElementById('geoapifyKey').value.trim();
+            const rapidapiKey = document.getElementById('rapidapiKey').value.trim();
+            const scraperbeeKey = document.getElementById('scraperbeeKey').value.trim();
+            const category = document.getElementById('category').value;
+            const location = document.getElementById('location').value.trim();
+            const searchMode = document.getElementById('searchMode').value;
+            
+            const errorDiv = document.getElementById('errorDiv');
+            const loadingDiv = document.getElementById('loadingDiv');
+            const resultsDiv = document.getElementById('resultsDiv');
+            
+            errorDiv.style.display = 'none';
+            resultsDiv.innerHTML = '';
+            
+            if (!geoapifyKey) {
+                errorDiv.textContent = '⚠️ Please enter your Geoapify API key (Tier 1 is required)';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            if (!location) {
+                errorDiv.textContent = '⚠️ Please enter a location';
+                errorDiv.style.display = 'block';
+                return;
+            }
+            
+            loadingDiv.textContent = 'Starting search...';
+            loadingDiv.style.display = 'block';
+            
+            try {
+                // Step 1: Geocode location
+                loadingDiv.textContent = 'Finding location coordinates...';
+                const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(location)}&apiKey=${geoapifyKey}`;
+                const geocodeResponse = await fetch(geocodeUrl);
+                
+                if (!geocodeResponse.ok) {
+                    throw new Error(`Geocoding failed: ${geocodeResponse.status}`);
+                }
+                
+                const geocodeData = await geocodeResponse.json();
+                
+                if (!geocodeData.features || geocodeData.features.length === 0) {
+                    throw new Error('Location not found. Please try a different location.');
+                }
+                
+                const coords = geocodeData.features[0].geometry.coordinates;
+                let lon = coords[0];
+                let lat = coords[1];
+                
+                // Apply search mode variations
+                let radius = 5000; // Default 5km
+                let offset = 0;
+                
+                if (searchMode === 'random') {
+                    // Random radius between 3-8km for variety
+                    radius = Math.floor(Math.random() * (8000 - 3000 + 1)) + 3000;
+                    
+                    // Random offset to get different pages (0, 10, 20, 30...)
+                    const possibleOffsets = [0, 10, 20, 30, 40];
+                    offset = possibleOffsets[Math.floor(Math.random() * possibleOffsets.length)];
+                    
+                    // Slightly shift location (±0.01 degrees = ~1km) for more variety
+                    const shift = 0.01;
+                    lon += (Math.random() - 0.5) * shift;
+                    lat += (Math.random() - 0.5) * shift;
+                    
+                    console.log(`Random mode: radius=${radius}m, offset=${offset}, shifted location`);
+                } else if (searchMode === 'explore') {
+                    // Larger random shift for exploration (±0.03 degrees = ~3km)
+                    const shift = 0.03;
+                    lon += (Math.random() - 0.5) * shift;
+                    lat += (Math.random() - 0.5) * shift;
+                    radius = 7000;
+                    
+                    console.log(`Explore mode: radius=${radius}m, exploring area around base location`);
+                }
+                
+                const categoryMap = {
+                    'restaurant': 'catering.restaurant',
+                    'cafe': 'catering.cafe',
+                    'hotel': 'accommodation.hotel',
+                    'hospital': 'healthcare.hospital',
+                    'school': 'education.school',
+                    'supermarket': 'commercial.supermarket',
+                    'bank': 'service.bank',
+                    'pharmacy': 'healthcare.pharmacy',
+                    'gym': 'sport.fitness',
+                    'bar': 'catering.bar'
+                };
+                
+                const geoapifyCategory = categoryMap[category] || category;
+                
+                // Step 2: Search Geoapify (Tier 1)
+                loadingDiv.textContent = '🔍 Tier 1: Searching Geoapify...';
+                const placesUrl = `https://api.geoapify.com/v2/places?categories=${geoapifyCategory}&filter=circle:${lon},${lat},${radius}&bias=proximity:${lon},${lat}&limit=20&offset=${offset}&apiKey=${geoapifyKey}`;
+                const placesResponse = await fetch(placesUrl);
+                
+                if (!placesResponse.ok) {
+                    throw new Error(`Geoapify search failed: ${placesResponse.status}`);
+                }
+                
+                const placesData = await placesResponse.json();
+                
+                if (!placesData.features || placesData.features.length === 0) {
+                    loadingDiv.style.display = 'none';
+                    resultsDiv.innerHTML = '<p class="no-contact">No places found in this area. Try a different location or category.</p>';
+                    return;
+                }
+                
+                // Filter out places we've already seen (if in random mode)
+                let places = placesData.features;
+                if (searchMode !== 'nearest') {
+                    places = places.filter(place => {
+                        const placeId = place.properties.place_id;
+                        return !seenPlaces.has(placeId);
+                    });
+                    
+                    // Remember these places
+                    places.forEach(place => {
+                        seenPlaces.add(place.properties.place_id);
+                    });
+                }
+                
+                // Shuffle results for more variety (only in random/explore mode)
+                if (searchMode !== 'nearest') {
+                    places = shuffleArray(places);
+                }
+                
+                // Limit to 10 results
+                places = places.slice(0, 10);
+                
+                // Step 3: Process each place through all tiers
+                const detailedPlaces = [];
+                
+                for (const place of places) {
+                    const placeId = place.properties.place_id;
+                    const placeName = place.properties.name || 'Unnamed Place';
+                    const placeCoords = place.geometry.coordinates;
+                    
+                    loadingDiv.textContent = `Processing: ${placeName}...`;
+                    
+                    // Tier 1: Get Geoapify details
+                    const detailsUrl = `https://api.geoapify.com/v2/place-details?id=${placeId}&apiKey=${geoapifyKey}`;
+                    const detailsResponse = await fetch(detailsUrl);
+                    const detailsData = await detailsResponse.json();
+                    
+                    const geoapifyContact = detailsData.features?.[0]?.properties?.datasource?.raw || {};
+                    let finalContact = { ...geoapifyContact };
+                    let sources = ['geoapify'];
+                    
+                    const hasPhone = finalContact.phone;
+                    const hasEmail = finalContact.email;
+                    const hasWebsite = finalContact.website;
+                    
+                    // Tier 2: Try RapidAPI if missing info
+                    if ((!hasPhone || !hasEmail) && rapidapiKey) {
+                        try {
+                            loadingDiv.textContent = `🔍 Tier 2: Checking RapidAPI for ${placeName}...`;
+                            
+                            const query = `${placeName} ${location}`;
+                            const rapidUrl = `https://local-business-data.p.rapidapi.com/search?query=${encodeURIComponent(query)}&lat=${lat}&lng=${lon}&limit=1&language=en&extract_emails_and_contacts=true`;
+                            
+                            const rapidResponse = await fetch(rapidUrl, {
+                                method: 'GET',
+                                headers: {
+                                    'x-rapidapi-host': 'local-business-data.p.rapidapi.com',
+                                    'x-rapidapi-key': rapidapiKey
+                                }
+                            });
+                            
+                            if (rapidResponse.ok) {
+                                const rapidData = await rapidResponse.json();
+                                
+                                if (rapidData.data && rapidData.data.length > 0) {
+                                    const rapidPlace = rapidData.data[0];
+                                    
+                                    if (!hasPhone && rapidPlace.phone_number) {
+                                        finalContact.phone = rapidPlace.phone_number;
+                                        sources.push('rapidapi');
+                                    }
+                                    if (!hasEmail && rapidPlace.email) {
+                                        finalContact.email = rapidPlace.email;
+                                        sources.push('rapidapi');
+                                    }
+                                    if (!hasWebsite && rapidPlace.website) {
+                                        finalContact.website = rapidPlace.website;
+                                        sources.push('rapidapi');
+                                    }
+                                }
+                            }
+                        } catch (rapidError) {
+                            console.error('RapidAPI error:', rapidError);
+                        }
+                    }
+                    
+                    // Tier 3: Try ScraperBee if we have a website but missing email/phone
+                    const needsScraping = (!finalContact.phone || !finalContact.email) && finalContact.website && scraperbeeKey;
+                    
+                    if (needsScraping) {
+                        try {
+                            loadingDiv.textContent = `🔍 Tier 3: Scraping website for ${placeName}...`;
+                            
+                            // Use ScraperBee AI to extract contact info
+                            const scraperbeeUrl = `https://app.scrapingbee.com/api/v1/?api_key=${scraperbeeKey}&url=${encodeURIComponent(finalContact.website)}&ai_query=${encodeURIComponent('Extract all contact information including email addresses, phone numbers, WhatsApp numbers, and social media links (Facebook, Instagram, Twitter, LinkedIn)')}&render_js=false`;
+                            
+                            const scraperbeeResponse = await fetch(scraperbeeUrl);
+                            
+                            console.log('ScraperBee status:', scraperbeeResponse.status);
+                            
+                            if (scraperbeeResponse.ok) {
+                                const html = await scraperbeeResponse.text();
+                                
+                                // Extract emails from the HTML
+                                const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g;
+                                const emails = html.match(emailRegex);
+                                
+                                // Extract phone numbers (international format)
+                                const phoneRegex = /[\+]?[(]?[0-9]{1,4}[)]?[-\s\.]?[(]?[0-9]{1,4}[)]?[-\s\.]?[0-9]{1,4}[-\s\.]?[0-9]{1,9}/g;
+                                const phones = html.match(phoneRegex);
+                                
+                                // Extract social media
+                                const socialRegex = {
+                                    facebook: /(?:https?:\/\/)?(?:www\.)?facebook\.com\/[a-zA-Z0-9.]+/g,
+                                    instagram: /(?:https?:\/\/)?(?:www\.)?instagram\.com\/[a-zA-Z0-9._]+/g,
+                                    twitter: /(?:https?:\/\/)?(?:www\.)?(?:twitter|x)\.com\/[a-zA-Z0-9_]+/g,
+                                    linkedin: /(?:https?:\/\/)?(?:www\.)?linkedin\.com\/(?:company|in)\/[a-zA-Z0-9-]+/g
+                                };
+                                
+                                const social = {};
+                                for (const [platform, regex] of Object.entries(socialRegex)) {
+                                    const matches = html.match(regex);
+                                    if (matches && matches.length > 0) {
+                                        social[platform] = matches[0];
+                                    }
+                                }
+                                
+                                if (!finalContact.email && emails && emails.length > 0) {
+                                    finalContact.email = emails[0];
+                                    sources.push('scraperbee');
+                                }
+                                
+                                if (!finalContact.phone && phones && phones.length > 0) {
+                                    finalContact.phone = phones[0];
+                                    sources.push('scraperbee');
+                                }
+                                
+                                if (Object.keys(social).length > 0) {
+                                    finalContact.social = social;
+                                    if (!sources.includes('scraperbee')) sources.push('scraperbee');
+                                }
+                                
+                                console.log('Scraped contact info:', { emails, phones, social });
+                            }
+                        } catch (scraperbeeError) {
+                            console.error('ScraperBee error:', scraperbeeError);
+                        }
+                    }
+                    
+                    detailedPlaces.push({
+                        name: placeName,
+                        address: place.properties.formatted || 'No address',
+                        category: place.properties.categories?.join(', ') || geoapifyCategory,
+                        contact: finalContact,
+                        sources: [...new Set(sources)] // Remove duplicates
+                    });
+                }
+                
+                displayResults(detailedPlaces);
+                updateHistoryCount();
+                
+            } catch (error) {
+                errorDiv.textContent = `❌ Error: ${error.message}`;
+                errorDiv.style.display = 'block';
+                console.error('Search error:', error);
+            } finally {
+                loadingDiv.style.display = 'none';
+            }
+        }
+        
+        function displayResults(places) {
+            const resultsDiv = document.getElementById('resultsDiv');
+            
+            if (places.length === 0) {
+                resultsDiv.innerHTML = '<p class="no-contact">No places found.</p>';
+                return;
+            }
+            
+            let html = `<h3>Found ${places.length} Place(s)</h3>`;
+            
+            places.forEach((place, index) => {
+                const hasContact = place.contact.phone || place.contact.email || place.contact.website || place.contact.social;
+                
+                const sourcebadges = place.sources.map(source => {
+                    const names = {
+                        'geoapify': 'Geoapify',
+                        'rapidapi': 'RapidAPI',
+                        'scraperbee': 'ScraperBee'
+                    };
+                    const classes = {
+                        'geoapify': 'source-geoapify',
+                        'rapidapi': 'source-rapidapi',
+                        'scraperbee': 'source-scraperbee'
+                    };
+                    return `<span class="api-source ${classes[source]}">${names[source]}</span>`;
+                }).join('');
+                
+                html += `
+                    <div class="place-card">
+                        <div class="api-sources">${sourcebadges}</div>
+                        <div class="place-name">${index + 1}. ${place.name}</div>
+                        <div class="place-info"><strong>Address:</strong> ${place.address}</div>
+                        <div class="place-info"><strong>Category:</strong> ${place.category}</div>
+                        
+                        <div class="contact-info">
+                            <strong>Contact Information:</strong>
+                            ${hasContact ? `
+                                ${place.contact.phone ? `<div class="contact-item">📞 <a href="tel:${place.contact.phone}">${place.contact.phone}</a></div>` : ''}
+                                ${place.contact.email ? `<div class="contact-item">📧 <a href="mailto:${place.contact.email}">${place.contact.email}</a></div>` : ''}
+                                ${place.contact.website ? `<div class="contact-item">🌐 <a href="${place.contact.website}" target="_blank">${place.contact.website}</a></div>` : ''}
+                                ${place.contact.social?.facebook ? `<div class="contact-item">📘 <a href="${place.contact.social.facebook}" target="_blank">Facebook</a></div>` : ''}
+                                ${place.contact.social?.instagram ? `<div class="contact-item">📷 <a href="${place.contact.social.instagram}" target="_blank">Instagram</a></div>` : ''}
+                                ${place.contact.social?.twitter ? `<div class="contact-item">🐦 <a href="${place.contact.social.twitter}" target="_blank">Twitter</a></div>` : ''}
+                                ${place.contact.social?.linkedin ? `<div class="contact-item">💼 <a href="${place.contact.social.linkedin}" target="_blank">LinkedIn</a></div>` : ''}
+                            ` : '<div class="no-contact">No contact information available</div>'}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        // Shuffle array function for randomizing results
+        function shuffleArray(array) {
+            const shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+    </script>
+</body>
+</html>

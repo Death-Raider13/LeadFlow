@@ -1,0 +1,15 @@
+{
+  "/api/integrations/credentials/route": "app/api/integrations/credentials/route.js",
+  "/api/integrations/test/route": "app/api/integrations/test/route.js",
+  "/api/leads/import/route": "app/api/leads/import/route.js",
+  "/api/stripe/create-checkout/route": "app/api/stripe/create-checkout/route.js",
+  "/auth/login/page": "app/auth/login/page.js",
+  "/dashboard/analytics/page": "app/dashboard/analytics/page.js",
+  "/dashboard/billing/page": "app/dashboard/billing/page.js",
+  "/dashboard/leads/[id]/page": "app/dashboard/leads/[id]/page.js",
+  "/dashboard/leads/import/page": "app/dashboard/leads/import/page.js",
+  "/dashboard/leads/page": "app/dashboard/leads/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/settings/page": "app/dashboard/settings/page.js",
+  "/page": "app/page.js"
+}
