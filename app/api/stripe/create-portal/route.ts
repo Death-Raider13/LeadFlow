@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { stripe } from "@/lib/stripe"
+import { getStripe } from "@/lib/stripe"
 
 function getBaseUrl(request: NextRequest): string {
   // Try origin header first
@@ -45,6 +45,11 @@ export async function POST(request: NextRequest) {
     }
 
     const baseUrl = getBaseUrl(request)
+
+    const stripe = getStripe()
+    if (!stripe) {
+      return NextResponse.json({ error: "Stripe not configured" }, { status: 404 })
+    }
 
     const session = await stripe.billingPortal.sessions.create({
       customer: profile.stripe_customer_id,
