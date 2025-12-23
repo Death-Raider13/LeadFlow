@@ -90,7 +90,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "WhatsApp rate limit reached",
-          message: `To protect your number, you can send up to ${THROTTLE_LIMIT} WhatsApp messages every 30 minutes. You have already sent ${recentCount} in the last 30 minutes. Please wait a bit or reduce the number of recipients.",
+          message: `To protect your number, you can send up to ${THROTTLE_LIMIT} WhatsApp messages every 30 minutes. You have already sent ${recentCount} in the last 30 minutes. Please wait a bit or reduce the number of recipients.`,
         },
         { status: 429 },
       )

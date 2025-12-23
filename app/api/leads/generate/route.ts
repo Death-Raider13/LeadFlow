@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "Lead limit reached",
-            message: `You have reached your monthly lead limit of ${currentPlan.leadLimit} leads for the ${currentPlan.name} plan. Consider upgrading your plan to generate more leads.",
+            message: `You have reached your monthly lead limit of ${currentPlan.leadLimit} leads for the ${currentPlan.name} plan. Consider upgrading your plan to generate more leads.`,
           },
           { status: 403 },
         )
@@ -314,7 +314,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           {
             error: "Lead limit reached",
-            message: `You have reached your monthly lead limit of ${currentPlan.leadLimit} leads for the ${currentPlan.name} plan. Consider upgrading your plan to generate more leads.",
+            message: `You have reached your monthly lead limit of ${currentPlan.leadLimit} leads for the ${currentPlan.name} plan. Consider upgrading your plan to generate more leads.`,
           },
           { status: 403 },
         )

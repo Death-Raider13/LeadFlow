@@ -79,7 +79,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           error: "Email rate limit reached",
-          message: `To protect your account, you can send up to ${THROTTLE_LIMIT} emails every 30 minutes. You have already sent ${recentCount} in the last 30 minutes. Please wait a bit or reduce the number of recipients.",
+          message: `To protect your account, you can send up to ${THROTTLE_LIMIT} emails every 30 minutes. You have already sent ${recentCount} in the last 30 minutes. Please wait a bit or reduce the number of recipients.`,
         },
         { status: 429 },
       )
