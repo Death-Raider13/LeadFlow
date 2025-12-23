@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Check } from "lucide-react"
+import { Check, Mail, MessageSquare } from "lucide-react"
 import { PLANS } from "@/lib/plans"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -43,53 +43,64 @@ export function Pricing() {
           </div>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-          {PLANS.map((plan) => (
-            <div
-              key={plan.id}
-              className={cn(
-                "relative rounded-2xl border bg-card p-6 flex flex-col",
-                plan.highlighted ? "border-primary shadow-xl ring-1 ring-primary" : "border-border",
-              )}
-            >
-              {plan.highlighted && (
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2">
-                  <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
-                    Most Popular
-                  </span>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+            {PLANS.map((plan) => {
+              const price = annual ? Math.round(plan.priceYearly / 12) : plan.priceMonthly
+
+              return (
+                <div
+                  key={plan.id}
+                  className={cn(
+                    "relative rounded-2xl border bg-card p-6 flex flex-col",
+                    plan.highlighted ? "border-primary shadow-xl ring-1 ring-primary" : "border-border",
+                  )}
+                >
+                  {plan.highlighted && (
+                    <div className="absolute -top-3 left-1/2 -translate-x-1/2">
+                      <span className="inline-flex items-center rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="mb-6">
+                    <h3 className="text-lg font-semibold">{plan.name}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
+                  </div>
+
+                  <div className="mb-6">
+                    <span className="text-4xl font-bold">₦{price.toLocaleString()}</span>
+                    <span className="text-muted-foreground">/month</span>
+                    {annual && plan.priceMonthly > 0 && (
+                      <p className="mt-1 text-sm text-muted-foreground">₦{plan.priceYearly.toLocaleString()}/year</p>
+                    )}
+                  </div>
+
+                  <ul className="mb-6 space-y-3 flex-1 text-sm">
+                    <li className="flex items-center gap-3">
+                      <Mail className="h-4 w-4 text-primary" />
+                      <span>{plan.emailCredits.toLocaleString()} emails/mo</span>
+                    </li>
+                    <li className="flex items-center gap-3">
+                      <MessageSquare className="h-4 w-4 text-primary" />
+                      <span>{plan.smsCredits.toLocaleString()} WhatsApp msgs/mo</span>
+                    </li>
+
+                    {plan.features.slice(0, 3).map((feature) => (
+                      <li key={feature} className="flex items-start gap-3">
+                        <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
+                        <span className="text-muted-foreground">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  <Button asChild variant={plan.highlighted ? "default" : "outline"} className="w-full">
+                    <Link href="/auth/sign-up">{plan.id === "free" ? "Get Started" : "Start Free Trial"}</Link>
+                  </Button>
                 </div>
-              )}
-
-              <div className="mb-6">
-                <h3 className="text-lg font-semibold">{plan.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">{plan.description}</p>
-              </div>
-
-              <div className="mb-6">
-                <span className="text-4xl font-bold">
-                  ${annual ? Math.round(plan.priceYearly / 12) : plan.priceMonthly}
-                </span>
-                <span className="text-muted-foreground">/month</span>
-                {annual && plan.priceMonthly > 0 && (
-                  <p className="mt-1 text-sm text-muted-foreground">Billed ${plan.priceYearly}/year</p>
-                )}
-              </div>
-
-              <ul className="mb-8 space-y-3 flex-1">
-                {plan.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-3 text-sm">
-                    <Check className="h-4 w-4 text-primary shrink-0 mt-0.5" />
-                    <span>{feature}</span>
-                  </li>
-                ))}
-              </ul>
-
-              <Button asChild variant={plan.highlighted ? "default" : "outline"} className="w-full">
-                <Link href="/auth/sign-up">{plan.id === "free" ? "Get Started" : "Start Free Trial"}</Link>
-              </Button>
-            </div>
-          ))}
-        </div>
+              )
+            })}
+          </div>
       </div>
     </section>
   )
