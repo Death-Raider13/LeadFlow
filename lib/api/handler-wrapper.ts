@@ -4,7 +4,7 @@ import { ApiVersionManager, withApiVersioning, ResponseTransformer, VersionCompa
 import { CentralizedErrorHandler, AppError } from '@/lib/monitoring/error-handler';
 import { withRequestTracking } from '@/lib/monitoring/correlation-middleware';
 import { logger } from '@/lib/monitoring/logger';
-import { inputValidator } from '@/lib/validation/input-validator';
+import { InputValidator } from '@/lib/validation/input-validator';
 import { rateLimiter } from '@/lib/rate-limiting/rate-limiter';
 import { getRateLimitsForUser } from '@/lib/rate-limiting/config';
 
@@ -94,11 +94,11 @@ export function createApiHandler(
       if (options.validateInput && options.schema) {
         try {
           const body = await request.json();
-          const validationResult = inputValidator.validateRequest(options.schema, body);
+          const validationResult = InputValidator.validateRequest(options.schema, body);
           
           if (!validationResult.success) {
             const errors = validationResult.errors?.map(error => ({
-              field: error.path?.join('.') || 'unknown',
+              field: error.field || 'unknown',
               message: error.message,
               code: error.code
             })) || [];
