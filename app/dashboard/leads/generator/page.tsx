@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -27,6 +28,7 @@ interface GeneratedPlace {
 }
 
 export default function LeadGeneratorPage() {
+  const router = useRouter()
   const [category, setCategory] = useState("restaurant")
   const [location, setLocation] = useState("Lagos, Nigeria")
   const [searchMode, setSearchMode] = useState<"random" | "nearest" | "explore">("random")
@@ -73,6 +75,11 @@ export default function LeadGeneratorPage() {
       setLeadsCreated(typeof data.leadsCreated === "number" ? data.leadsCreated : null)
       if (data.insertError) {
         setError(data.insertError)
+      }
+
+      // Refresh the dashboard to show updated lead count
+      if (data.leadsCreated && data.leadsCreated > 0) {
+        router.refresh()
       }
     } catch (err: any) {
       setError(err.message || "Failed to generate leads")

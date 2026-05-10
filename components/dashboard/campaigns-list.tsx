@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { firebaseDb } from "@/lib/firebase/client"
+import { doc, deleteDoc } from "firebase/firestore"
 import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
@@ -39,23 +40,20 @@ export function CampaignsList({ campaigns: initialCampaigns, type }: CampaignsLi
   const { toast } = useToast()
 
   const handleDelete = async (id: string) => {
-    const supabase = createClient()
-    const { error } = await supabase.from("campaigns").delete().eq("id", id)
-
-    if (error) {
+    try {
+      await deleteDoc(doc(firebaseDb, "campaigns", id))
+      setCampaigns(campaigns.filter((c) => c.id !== id))
+      toast({
+        title: "Campaign deleted",
+        description: "Your campaign has been removed.",
+      })
+    } catch {
       toast({
         variant: "destructive",
         title: "Could not delete campaign",
         description: "Please try again in a moment.",
       })
-      return
     }
-
-    setCampaigns(campaigns.filter((c) => c.id !== id))
-    toast({
-      title: "Campaign deleted",
-      description: "Your campaign has been removed.",
-    })
   }
 
   const getStatusIcon = (status: Campaign["status"]) => {

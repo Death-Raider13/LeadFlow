@@ -416,6 +416,7 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/card.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/button.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/input.tsx [app-client] (ecmascript)");
@@ -428,8 +429,10 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
 function LeadGeneratorPage() {
     _s();
+    const router = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"])();
     const [category, setCategory] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("restaurant");
     const [location, setLocation] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("Lagos, Nigeria");
     const [searchMode, setSearchMode] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("random");
@@ -479,6 +482,10 @@ function LeadGeneratorPage() {
             if (data.insertError) {
                 setError(data.insertError);
             }
+            // Refresh the dashboard to show updated lead count
+            if (data.leadsCreated && data.leadsCreated > 0) {
+                router.refresh();
+            }
         } catch (err) {
             setError(err.message || "Failed to generate leads");
         } finally{
@@ -498,7 +505,7 @@ function LeadGeneratorPage() {
                         children: "Lead Generator"
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                        lineNumber: 91,
+                        lineNumber: 98,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -506,13 +513,13 @@ function LeadGeneratorPage() {
                         children: "Find businesses by category and location and save them as leads."
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                        lineNumber: 92,
+                        lineNumber: 99,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                lineNumber: 90,
+                lineNumber: 97,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -534,7 +541,7 @@ function LeadGeneratorPage() {
                                                 children: "Category"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 100,
+                                                lineNumber: 107,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -547,12 +554,12 @@ function LeadGeneratorPage() {
                                                             placeholder: "Select category"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 105,
+                                                            lineNumber: 112,
                                                             columnNumber: 21
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                        lineNumber: 104,
+                                                        lineNumber: 111,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -562,7 +569,7 @@ function LeadGeneratorPage() {
                                                                 children: "Restaurants"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 108,
+                                                                lineNumber: 115,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -570,7 +577,7 @@ function LeadGeneratorPage() {
                                                                 children: "Cafes"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 109,
+                                                                lineNumber: 116,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -578,7 +585,7 @@ function LeadGeneratorPage() {
                                                                 children: "Hotels"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 110,
+                                                                lineNumber: 117,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -586,7 +593,7 @@ function LeadGeneratorPage() {
                                                                 children: "Hospitals"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 111,
+                                                                lineNumber: 118,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -594,7 +601,7 @@ function LeadGeneratorPage() {
                                                                 children: "Schools"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 112,
+                                                                lineNumber: 119,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -602,7 +609,7 @@ function LeadGeneratorPage() {
                                                                 children: "Supermarkets"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 113,
+                                                                lineNumber: 120,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -610,7 +617,7 @@ function LeadGeneratorPage() {
                                                                 children: "Banks"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 114,
+                                                                lineNumber: 121,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -618,7 +625,7 @@ function LeadGeneratorPage() {
                                                                 children: "Pharmacies"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 115,
+                                                                lineNumber: 122,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -626,7 +633,7 @@ function LeadGeneratorPage() {
                                                                 children: "Gyms"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 116,
+                                                                lineNumber: 123,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -634,25 +641,25 @@ function LeadGeneratorPage() {
                                                                 children: "Bars"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 117,
+                                                                lineNumber: 124,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                        lineNumber: 107,
+                                                        lineNumber: 114,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 103,
+                                                lineNumber: 110,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                        lineNumber: 99,
+                                        lineNumber: 106,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -664,7 +671,7 @@ function LeadGeneratorPage() {
                                                 children: "Location"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 122,
+                                                lineNumber: 129,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -674,19 +681,19 @@ function LeadGeneratorPage() {
                                                 placeholder: "e.g. Lagos, Nigeria"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 125,
+                                                lineNumber: 132,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                        lineNumber: 121,
+                                        lineNumber: 128,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                lineNumber: 98,
+                                lineNumber: 105,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -701,7 +708,7 @@ function LeadGeneratorPage() {
                                                 children: "Search Variety Mode"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 136,
+                                                lineNumber: 143,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -714,12 +721,12 @@ function LeadGeneratorPage() {
                                                             placeholder: "Select mode"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 141,
+                                                            lineNumber: 148,
                                                             columnNumber: 21
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                        lineNumber: 140,
+                                                        lineNumber: 147,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -729,7 +736,7 @@ function LeadGeneratorPage() {
                                                                 children: "Random Results (Different Each Time)"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 144,
+                                                                lineNumber: 151,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -737,7 +744,7 @@ function LeadGeneratorPage() {
                                                                 children: "Nearest First (Consistent)"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 145,
+                                                                lineNumber: 152,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -745,19 +752,19 @@ function LeadGeneratorPage() {
                                                                 children: "Explore Mode (Random Area)"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                lineNumber: 146,
+                                                                lineNumber: 153,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                        lineNumber: 143,
+                                                        lineNumber: 150,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 139,
+                                                lineNumber: 146,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -765,13 +772,13 @@ function LeadGeneratorPage() {
                                                 children: "Random/Explore avoid repeating seen places until you clear history."
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 149,
+                                                lineNumber: 156,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                        lineNumber: 135,
+                                        lineNumber: 142,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -785,7 +792,7 @@ function LeadGeneratorPage() {
                                                 children: "🔄 Clear Seen Places History"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 154,
+                                                lineNumber: 161,
                                                 columnNumber: 17
                                             }, this),
                                             seenPlaceIds.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -798,19 +805,19 @@ function LeadGeneratorPage() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                lineNumber: 158,
+                                                lineNumber: 165,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                        lineNumber: 153,
+                                        lineNumber: 160,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                lineNumber: 134,
+                                lineNumber: 141,
                                 columnNumber: 13
                             }, this),
                             error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -818,7 +825,7 @@ function LeadGeneratorPage() {
                                 children: error
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                lineNumber: 165,
+                                lineNumber: 172,
                                 columnNumber: 23
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -828,7 +835,7 @@ function LeadGeneratorPage() {
                                 children: isLoading ? "Searching..." : "Search & Save Leads"
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                lineNumber: 167,
+                                lineNumber: 174,
                                 columnNumber: 13
                             }, this),
                             leadsCreated !== null && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -841,23 +848,23 @@ function LeadGeneratorPage() {
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                lineNumber: 172,
+                                lineNumber: 179,
                                 columnNumber: 15
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                        lineNumber: 97,
+                        lineNumber: 104,
                         columnNumber: 11
                     }, this)
                 }, void 0, false, {
                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                    lineNumber: 96,
+                    lineNumber: 103,
                     columnNumber: 9
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                lineNumber: 95,
+                lineNumber: 102,
                 columnNumber: 7
             }, this),
             results.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -869,7 +876,7 @@ function LeadGeneratorPage() {
                             children: "Results"
                         }, void 0, false, {
                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                            lineNumber: 183,
+                            lineNumber: 190,
                             columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -886,12 +893,12 @@ function LeadGeneratorPage() {
                                                     children: s
                                                 }, s, false, {
                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                    lineNumber: 193,
+                                                    lineNumber: 200,
                                                     columnNumber: 25
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                            lineNumber: 191,
+                                            lineNumber: 198,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -903,7 +910,7 @@ function LeadGeneratorPage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                            lineNumber: 198,
+                                            lineNumber: 205,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -911,7 +918,7 @@ function LeadGeneratorPage() {
                                             children: place.address
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                            lineNumber: 201,
+                                            lineNumber: 208,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -922,7 +929,7 @@ function LeadGeneratorPage() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                            lineNumber: 202,
+                                            lineNumber: 209,
                                             columnNumber: 21
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -933,7 +940,7 @@ function LeadGeneratorPage() {
                                                     children: "Contact:"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                    lineNumber: 204,
+                                                    lineNumber: 211,
                                                     columnNumber: 23
                                                 }, this),
                                                 " ",
@@ -947,7 +954,7 @@ function LeadGeneratorPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 207,
+                                                            lineNumber: 214,
                                                             columnNumber: 51
                                                         }, this),
                                                         place.contact.email && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -957,7 +964,7 @@ function LeadGeneratorPage() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 208,
+                                                            lineNumber: 215,
                                                             columnNumber: 51
                                                         }, this),
                                                         place.contact.website && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -971,13 +978,13 @@ function LeadGeneratorPage() {
                                                                     children: place.contact.website
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                    lineNumber: 211,
+                                                                    lineNumber: 218,
                                                                     columnNumber: 34
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 210,
+                                                            lineNumber: 217,
                                                             columnNumber: 29
                                                         }, this),
                                                         place.contact.social?.facebook && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -991,13 +998,13 @@ function LeadGeneratorPage() {
                                                                     children: "Facebook"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                    lineNumber: 218,
+                                                                    lineNumber: 225,
                                                                     columnNumber: 34
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 217,
+                                                            lineNumber: 224,
                                                             columnNumber: 29
                                                         }, this),
                                                         place.contact.social?.instagram && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1011,13 +1018,13 @@ function LeadGeneratorPage() {
                                                                     children: "Instagram"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                    lineNumber: 225,
+                                                                    lineNumber: 232,
                                                                     columnNumber: 34
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 224,
+                                                            lineNumber: 231,
                                                             columnNumber: 29
                                                         }, this),
                                                         place.contact.social?.twitter && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1031,13 +1038,13 @@ function LeadGeneratorPage() {
                                                                     children: "Twitter"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                    lineNumber: 232,
+                                                                    lineNumber: 239,
                                                                     columnNumber: 34
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 231,
+                                                            lineNumber: 238,
                                                             columnNumber: 29
                                                         }, this),
                                                         place.contact.social?.linkedin && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1051,65 +1058,69 @@ function LeadGeneratorPage() {
                                                                     children: "LinkedIn"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                                    lineNumber: 239,
+                                                                    lineNumber: 246,
                                                                     columnNumber: 34
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                            lineNumber: 238,
+                                                            lineNumber: 245,
                                                             columnNumber: 29
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                    lineNumber: 206,
+                                                    lineNumber: 213,
                                                     columnNumber: 25
                                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
                                                     className: "italic text-muted-foreground",
                                                     children: "No contact information available"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                                    lineNumber: 246,
+                                                    lineNumber: 253,
                                                     columnNumber: 25
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                            lineNumber: 203,
+                                            lineNumber: 210,
                                             columnNumber: 21
                                         }, this)
                                     ]
                                 }, `${place.name}-${index}`, true, {
                                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                                    lineNumber: 190,
+                                    lineNumber: 197,
                                     columnNumber: 19
                                 }, this);
                             })
                         }, void 0, false, {
                             fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                            lineNumber: 184,
+                            lineNumber: 191,
                             columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                    lineNumber: 182,
+                    lineNumber: 189,
                     columnNumber: 11
                 }, this)
             }, void 0, false, {
                 fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-                lineNumber: 181,
+                lineNumber: 188,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/dashboard/leads/generator/page.tsx",
-        lineNumber: 89,
+        lineNumber: 96,
         columnNumber: 5
     }, this);
 }
-_s(LeadGeneratorPage, "3iCkvIgidODTGmn7mm7zvMqqBLw=");
+_s(LeadGeneratorPage, "SXxewNSYRhYacb2krP1Glb0fx6A=", false, function() {
+    return [
+        __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useRouter"]
+    ];
+});
 _c = LeadGeneratorPage;
 var _c;
 __turbopack_context__.k.register(_c, "LeadGeneratorPage");

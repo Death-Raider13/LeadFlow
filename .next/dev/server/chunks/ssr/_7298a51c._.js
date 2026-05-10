@@ -162,12 +162,15 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabase/client.ts [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$index$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/index.mjs [app-ssr] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.node.mjs [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$firebase$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/firebase/client.ts [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/card.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/input.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$label$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/label.tsx [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/button.tsx [app-ssr] (ecmascript)");
 "use client";
+;
 ;
 ;
 ;
@@ -196,11 +199,18 @@ function SettingsPage() {
     const [gmailTestError, setGmailTestError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const fetchProfile = async ()=>{
-            const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createClient"])();
-            const { data: { user } } = await supabase.auth.getUser();
-            if (user) {
-                const { data } = await supabase.from("profiles").select("full_name, company_name").eq("id", user.id).single();
-                setProfile(data);
+            const user = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$firebase$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["firebaseAuth"].currentUser;
+            if (!user) {
+                return;
+            }
+            const profileRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$firebase$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["firebaseDb"], "profiles", user.uid);
+            const snap = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getDoc"])(profileRef);
+            if (snap.exists()) {
+                const data = snap.data();
+                setProfile({
+                    full_name: data.full_name,
+                    company_name: data.company_name || ""
+                });
             }
         };
         const fetchIntegrationsStatus = async ()=>{
@@ -218,7 +228,6 @@ function SettingsPage() {
                 setIntegrationsLoading(false);
             }
         };
-        fetchProfile();
         fetchIntegrationsStatus();
     }, []);
     const handleSubmit = async (e)=>{
@@ -226,16 +235,18 @@ function SettingsPage() {
         setIsLoading(true);
         setSuccess(false);
         const formData = new FormData(e.currentTarget);
-        const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["createClient"])();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user) {
-            await supabase.from("profiles").update({
-                full_name: formData.get("full_name"),
-                company_name: formData.get("company_name"),
-                updated_at: new Date().toISOString()
-            }).eq("id", user.id);
-            setSuccess(true);
+        const user = __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$firebase$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["firebaseAuth"].currentUser;
+        if (!user) {
+            setIsLoading(false);
+            return;
         }
+        const profileRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$firebase$2f$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["firebaseDb"], "profiles", user.uid);
+        await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$node$2e$mjs__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["updateDoc"])(profileRef, {
+            full_name: formData.get("full_name"),
+            company_name: formData.get("company_name") || "",
+            updated_at: new Date().toISOString()
+        });
+        setSuccess(true);
         setIsLoading(false);
     };
     const handleIntegrationsSubmit = async (e)=>{
@@ -336,7 +347,7 @@ function SettingsPage() {
                         children: "Settings"
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                        lineNumber: 183,
+                        lineNumber: 188,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -344,13 +355,13 @@ function SettingsPage() {
                         children: "Manage your account settings"
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                        lineNumber: 184,
+                        lineNumber: 189,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                lineNumber: 182,
+                lineNumber: 187,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -361,20 +372,20 @@ function SettingsPage() {
                                 children: "Profile"
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                lineNumber: 189,
+                                lineNumber: 194,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                                 children: "Update your personal information"
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                lineNumber: 190,
+                                lineNumber: 195,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                        lineNumber: 188,
+                        lineNumber: 193,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -390,7 +401,7 @@ function SettingsPage() {
                                             children: "Full Name"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/settings/page.tsx",
-                                            lineNumber: 195,
+                                            lineNumber: 200,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -400,13 +411,13 @@ function SettingsPage() {
                                             placeholder: "Your name"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/settings/page.tsx",
-                                            lineNumber: 196,
+                                            lineNumber: 201,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/dashboard/settings/page.tsx",
-                                    lineNumber: 194,
+                                    lineNumber: 199,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -417,7 +428,7 @@ function SettingsPage() {
                                             children: "Company Name"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/settings/page.tsx",
-                                            lineNumber: 199,
+                                            lineNumber: 204,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -427,13 +438,13 @@ function SettingsPage() {
                                             placeholder: "Your company"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dashboard/settings/page.tsx",
-                                            lineNumber: 200,
+                                            lineNumber: 205,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/dashboard/settings/page.tsx",
-                                    lineNumber: 198,
+                                    lineNumber: 203,
                                     columnNumber: 13
                                 }, this),
                                 success && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -441,7 +452,7 @@ function SettingsPage() {
                                     children: "Profile updated successfully"
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/settings/page.tsx",
-                                    lineNumber: 208,
+                                    lineNumber: 213,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -450,24 +461,24 @@ function SettingsPage() {
                                     children: isLoading ? "Saving..." : "Save Changes"
                                 }, void 0, false, {
                                     fileName: "[project]/app/dashboard/settings/page.tsx",
-                                    lineNumber: 210,
+                                    lineNumber: 215,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/dashboard/settings/page.tsx",
-                            lineNumber: 193,
+                            lineNumber: 198,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                        lineNumber: 192,
+                        lineNumber: 197,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                lineNumber: 187,
+                lineNumber: 192,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -478,20 +489,20 @@ function SettingsPage() {
                                 children: "Messaging & Email Integrations"
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                lineNumber: 219,
+                                lineNumber: 224,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                                 children: "Connect your own UltraMsg WhatsApp and Gmail SMTP accounts. We encrypt everything with a per-user key and a master key so only the backend can use these credentials."
                             }, void 0, false, {
                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                lineNumber: 220,
+                                lineNumber: 225,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                        lineNumber: 218,
+                        lineNumber: 223,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -505,7 +516,7 @@ function SettingsPage() {
                                                 children: "WhatsApp (UltraMsg):"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 228,
+                                                lineNumber: 233,
                                                 columnNumber: 15
                                             }, this),
                                             " Create an instance in UltraMsg, copy the ",
@@ -513,7 +524,7 @@ function SettingsPage() {
                                                 children: "Instance ID"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 228,
+                                                lineNumber: 233,
                                                 columnNumber: 94
                                             }, this),
                                             " and",
@@ -521,14 +532,14 @@ function SettingsPage() {
                                                 children: " Token"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 229,
+                                                lineNumber: 234,
                                                 columnNumber: 15
                                             }, this),
                                             ", then paste them below. Messages will be sent from your own WhatsApp number."
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 227,
+                                        lineNumber: 232,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -537,7 +548,7 @@ function SettingsPage() {
                                                 children: "Gmail SMTP:"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 232,
+                                                lineNumber: 237,
                                                 columnNumber: 15
                                             }, this),
                                             " Enable 2FA on your Gmail account, create an ",
@@ -545,20 +556,20 @@ function SettingsPage() {
                                                 children: "App Password"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 232,
+                                                lineNumber: 237,
                                                 columnNumber: 88
                                             }, this),
                                             " in your Google account security settings, and paste that password here (not your normal login password)."
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 231,
+                                        lineNumber: 236,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                lineNumber: 226,
+                                lineNumber: 231,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -576,7 +587,7 @@ function SettingsPage() {
                                                         children: "UltraMsg Instance ID"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 240,
+                                                        lineNumber: 245,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -587,7 +598,7 @@ function SettingsPage() {
                                                         autoComplete: "off"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 241,
+                                                        lineNumber: 246,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -598,13 +609,13 @@ function SettingsPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 248,
+                                                        lineNumber: 253,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 239,
+                                                lineNumber: 244,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -615,7 +626,7 @@ function SettingsPage() {
                                                         children: "UltraMsg Token"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 253,
+                                                        lineNumber: 258,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -627,19 +638,19 @@ function SettingsPage() {
                                                         autoComplete: "off"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 254,
+                                                        lineNumber: 259,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 252,
+                                                lineNumber: 257,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 238,
+                                        lineNumber: 243,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -654,7 +665,7 @@ function SettingsPage() {
                                                 children: testingWhatsApp ? "Testing WhatsApp..." : "Test WhatsApp connection"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 266,
+                                                lineNumber: 271,
                                                 columnNumber: 15
                                             }, this),
                                             whatsAppTestError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -662,7 +673,7 @@ function SettingsPage() {
                                                 children: whatsAppTestError
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 270,
+                                                lineNumber: 275,
                                                 columnNumber: 17
                                             }, this),
                                             whatsAppTestMessage && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -670,13 +681,13 @@ function SettingsPage() {
                                                 children: whatsAppTestMessage
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 273,
+                                                lineNumber: 278,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 265,
+                                        lineNumber: 270,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -690,7 +701,7 @@ function SettingsPage() {
                                                         children: "Gmail Address"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 279,
+                                                        lineNumber: 284,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -702,7 +713,7 @@ function SettingsPage() {
                                                         autoComplete: "off"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 280,
+                                                        lineNumber: 285,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -713,13 +724,13 @@ function SettingsPage() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 288,
+                                                        lineNumber: 293,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 278,
+                                                lineNumber: 283,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -730,7 +741,7 @@ function SettingsPage() {
                                                         children: "Gmail App Password"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 293,
+                                                        lineNumber: 298,
                                                         columnNumber: 17
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -742,19 +753,19 @@ function SettingsPage() {
                                                         autoComplete: "off"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                        lineNumber: 294,
+                                                        lineNumber: 299,
                                                         columnNumber: 17
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 292,
+                                                lineNumber: 297,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 277,
+                                        lineNumber: 282,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -769,7 +780,7 @@ function SettingsPage() {
                                                 children: testingGmail ? "Testing Gmail..." : "Test Gmail connection"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 306,
+                                                lineNumber: 311,
                                                 columnNumber: 15
                                             }, this),
                                             gmailTestError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -777,7 +788,7 @@ function SettingsPage() {
                                                 children: gmailTestError
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 310,
+                                                lineNumber: 315,
                                                 columnNumber: 17
                                             }, this),
                                             gmailTestMessage && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -785,13 +796,13 @@ function SettingsPage() {
                                                 children: gmailTestMessage
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                                lineNumber: 313,
+                                                lineNumber: 318,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 305,
+                                        lineNumber: 310,
                                         columnNumber: 13
                                     }, this),
                                     integrationsError && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -799,7 +810,7 @@ function SettingsPage() {
                                         children: integrationsError
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 318,
+                                        lineNumber: 323,
                                         columnNumber: 15
                                     }, this),
                                     integrationsSuccess && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -807,7 +818,7 @@ function SettingsPage() {
                                         children: "Integrations saved. We will use your encrypted credentials only from the backend when sending campaigns."
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 321,
+                                        lineNumber: 326,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -816,31 +827,31 @@ function SettingsPage() {
                                         children: integrationsLoading ? "Saving..." : "Save Integrations"
                                     }, void 0, false, {
                                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                                        lineNumber: 326,
+                                        lineNumber: 331,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                                lineNumber: 237,
+                                lineNumber: 242,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dashboard/settings/page.tsx",
-                        lineNumber: 225,
+                        lineNumber: 230,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dashboard/settings/page.tsx",
-                lineNumber: 217,
+                lineNumber: 222,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/dashboard/settings/page.tsx",
-        lineNumber: 181,
+        lineNumber: 186,
         columnNumber: 5
     }, this);
 }

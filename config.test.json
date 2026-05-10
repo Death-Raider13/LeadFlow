@@ -1,0 +1,23 @@
+{
+  "environment": "test",
+  "database": {
+    "connectionPoolSize": 2,
+    "queryTimeout": 5000,
+    "enableLogging": false
+  },
+  "security": {
+    "sessionTimeout": 600000,
+    "maxLoginAttempts": 100,
+    "enableTwoFactor": false
+  },
+  "performance": {
+    "cacheSize": 10,
+    "rateLimitWindow": 1000,
+    "maxConcurrentRequests": 10
+  },
+  "monitoring": {
+    "enableMetrics": false,
+    "logLevel": "error",
+    "enableTracing": false
+  }
+}

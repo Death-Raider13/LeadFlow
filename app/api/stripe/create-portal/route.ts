@@ -1,5 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
 import { getStripe } from "@/lib/stripe"
 
 function getBaseUrl(request: NextRequest): string {
@@ -29,20 +30,18 @@ function getBaseUrl(request: NextRequest): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getServerUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase.from("profiles").select("stripe_customer_id").eq("id", user.id).single()
+    const profileSnap = await firebaseAdminDb.collection("profiles").doc(user.uid).get()
 
-    if (!profile?.stripe_customer_id) {
+    if (!profileSnap.exists || !profileSnap.data().stripe_customer_id) {
       return NextResponse.json({ error: "No billing account found" }, { status: 400 })
     }
+
+    const stripe_customer_id = profileSnap.data().stripe_customer_id
 
     const baseUrl = getBaseUrl(request)
 
@@ -52,7 +51,7 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await stripe.billingPortal.sessions.create({
-      customer: profile.stripe_customer_id,
+      customer: stripe_customer_id,
       return_url: `${baseUrl}/dashboard/billing`,
     })
 

@@ -479,7 +479,9 @@ __turbopack_context__.s([
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/jsx-dev-runtime.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/compiled/react/index.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/supabase/client.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$firebase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/lib/firebase/client.ts [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$firebase$2f$firestore$2f$dist$2f$esm$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/firebase/firestore/dist/esm/index.esm.js [app-client] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@firebase/firestore/dist/index.esm.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$navigation$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/navigation.js [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/card.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/input.tsx [app-client] (ecmascript)");
@@ -499,6 +501,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 ;
 ;
+;
 function LeadForm({ lead, userId }) {
     _s();
     const [isLoading, setIsLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(false);
@@ -509,7 +512,6 @@ function LeadForm({ lead, userId }) {
         setIsLoading(true);
         setError(null);
         const formData = new FormData(e.currentTarget);
-        const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createClient"])();
         const leadData = {
             name: formData.get("name"),
             email: formData.get("email") || null,
@@ -517,27 +519,26 @@ function LeadForm({ lead, userId }) {
             source: formData.get("source") || null,
             status: formData.get("status"),
             notes: formData.get("notes") || null,
-            user_id: userId
+            user_id: userId,
+            updated_at: new Date().toISOString()
         };
-        if (lead) {
-            // Update existing lead
-            const { error: updateError } = await supabase.from("leads").update({
-                ...leadData,
-                updated_at: new Date().toISOString()
-            }).eq("id", lead.id);
-            if (updateError) {
-                setError(updateError.message);
-                setIsLoading(false);
-                return;
+        try {
+            if (lead) {
+                // Update existing lead
+                const leadRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$firebase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["firebaseDb"], "leads", lead.id);
+                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["updateDoc"])(leadRef, leadData);
+            } else {
+                // Create new lead (random id)
+                const newLeadRef = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["doc"])(__TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$firebase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["firebaseDb"], "leads", crypto.randomUUID());
+                await (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$firebase$2f$firestore$2f$dist$2f$index$2e$esm$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["setDoc"])(newLeadRef, {
+                    ...leadData,
+                    created_at: new Date().toISOString()
+                });
             }
-        } else {
-            // Create new lead
-            const { error: insertError } = await supabase.from("leads").insert(leadData);
-            if (insertError) {
-                setError(insertError.message);
-                setIsLoading(false);
-                return;
-            }
+        } catch (err) {
+            setError(err.message || "Failed to save lead.");
+            setIsLoading(false);
+            return;
         }
         router.push("/dashboard/leads");
         router.refresh();
@@ -560,7 +561,7 @@ function LeadForm({ lead, userId }) {
                                         children: "Name *"
                                     }, void 0, false, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 77,
+                                        lineNumber: 73,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -571,13 +572,13 @@ function LeadForm({ lead, userId }) {
                                         placeholder: "John Doe"
                                     }, void 0, false, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 78,
+                                        lineNumber: 74,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 76,
+                                lineNumber: 72,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -588,7 +589,7 @@ function LeadForm({ lead, userId }) {
                                         children: "Email"
                                     }, void 0, false, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 81,
+                                        lineNumber: 77,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -599,19 +600,19 @@ function LeadForm({ lead, userId }) {
                                         placeholder: "john@example.com"
                                     }, void 0, false, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 82,
+                                        lineNumber: 78,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 80,
+                                lineNumber: 76,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                        lineNumber: 75,
+                        lineNumber: 71,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -625,7 +626,7 @@ function LeadForm({ lead, userId }) {
                                         children: "Phone"
                                     }, void 0, false, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 94,
+                                        lineNumber: 90,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -636,13 +637,13 @@ function LeadForm({ lead, userId }) {
                                         placeholder: "+1 (555) 123-4567"
                                     }, void 0, false, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 95,
+                                        lineNumber: 91,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 93,
+                                lineNumber: 89,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -653,7 +654,7 @@ function LeadForm({ lead, userId }) {
                                         children: "Source"
                                     }, void 0, false, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 104,
+                                        lineNumber: 100,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -665,12 +666,12 @@ function LeadForm({ lead, userId }) {
                                                     placeholder: "Select source"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                    lineNumber: 107,
+                                                    lineNumber: 103,
                                                     columnNumber: 19
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                lineNumber: 106,
+                                                lineNumber: 102,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -680,7 +681,7 @@ function LeadForm({ lead, userId }) {
                                                         children: "Website"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                        lineNumber: 110,
+                                                        lineNumber: 106,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -688,7 +689,7 @@ function LeadForm({ lead, userId }) {
                                                         children: "Referral"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                        lineNumber: 111,
+                                                        lineNumber: 107,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -696,7 +697,7 @@ function LeadForm({ lead, userId }) {
                                                         children: "Social Media"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                        lineNumber: 112,
+                                                        lineNumber: 108,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -704,7 +705,7 @@ function LeadForm({ lead, userId }) {
                                                         children: "Ads"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                        lineNumber: 113,
+                                                        lineNumber: 109,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -712,7 +713,7 @@ function LeadForm({ lead, userId }) {
                                                         children: "Event"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                        lineNumber: 114,
+                                                        lineNumber: 110,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -720,31 +721,31 @@ function LeadForm({ lead, userId }) {
                                                         children: "Other"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                        lineNumber: 115,
+                                                        lineNumber: 111,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                lineNumber: 109,
+                                                lineNumber: 105,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 105,
+                                        lineNumber: 101,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 103,
+                                lineNumber: 99,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                        lineNumber: 92,
+                        lineNumber: 88,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -755,7 +756,7 @@ function LeadForm({ lead, userId }) {
                                 children: "Status"
                             }, void 0, false, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 122,
+                                lineNumber: 118,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Select"], {
@@ -767,12 +768,12 @@ function LeadForm({ lead, userId }) {
                                             placeholder: "Select status"
                                         }, void 0, false, {
                                             fileName: "[project]/components/dashboard/lead-form.tsx",
-                                            lineNumber: 125,
+                                            lineNumber: 121,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 124,
+                                        lineNumber: 120,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -782,7 +783,7 @@ function LeadForm({ lead, userId }) {
                                                 children: "New"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                lineNumber: 128,
+                                                lineNumber: 124,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -790,7 +791,7 @@ function LeadForm({ lead, userId }) {
                                                 children: "Contacted"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                lineNumber: 129,
+                                                lineNumber: 125,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -798,7 +799,7 @@ function LeadForm({ lead, userId }) {
                                                 children: "Qualified"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                lineNumber: 130,
+                                                lineNumber: 126,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -806,7 +807,7 @@ function LeadForm({ lead, userId }) {
                                                 children: "Converted"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                lineNumber: 131,
+                                                lineNumber: 127,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -814,25 +815,25 @@ function LeadForm({ lead, userId }) {
                                                 children: "Lost"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                                lineNumber: 132,
+                                                lineNumber: 128,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                                        lineNumber: 127,
+                                        lineNumber: 123,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 123,
+                                lineNumber: 119,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                        lineNumber: 121,
+                        lineNumber: 117,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -843,7 +844,7 @@ function LeadForm({ lead, userId }) {
                                 children: "Notes"
                             }, void 0, false, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 138,
+                                lineNumber: 134,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$textarea$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Textarea"], {
@@ -854,13 +855,13 @@ function LeadForm({ lead, userId }) {
                                 rows: 4
                             }, void 0, false, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 139,
+                                lineNumber: 135,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                        lineNumber: 137,
+                        lineNumber: 133,
                         columnNumber: 11
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -868,7 +869,7 @@ function LeadForm({ lead, userId }) {
                         children: error
                     }, void 0, false, {
                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                        lineNumber: 148,
+                        lineNumber: 144,
                         columnNumber: 21
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -880,7 +881,7 @@ function LeadForm({ lead, userId }) {
                                 children: isLoading ? "Saving..." : lead ? "Update Lead" : "Add Lead"
                             }, void 0, false, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 151,
+                                lineNumber: 147,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -890,29 +891,29 @@ function LeadForm({ lead, userId }) {
                                 children: "Cancel"
                             }, void 0, false, {
                                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                                lineNumber: 154,
+                                lineNumber: 150,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/dashboard/lead-form.tsx",
-                        lineNumber: 150,
+                        lineNumber: 146,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/dashboard/lead-form.tsx",
-                lineNumber: 74,
+                lineNumber: 70,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/components/dashboard/lead-form.tsx",
-            lineNumber: 73,
+            lineNumber: 69,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/dashboard/lead-form.tsx",
-        lineNumber: 72,
+        lineNumber: 68,
         columnNumber: 5
     }, this);
 }

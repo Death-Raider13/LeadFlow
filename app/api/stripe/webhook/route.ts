@@ -1,9 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@supabase/supabase-js"
 import { PLANS } from "@/lib/plans"
-
-// Use service role for webhook to bypass RLS
-const supabaseAdmin = createClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
+import { firebaseAdminDb } from "@/lib/firebase/admin"
 
 export async function POST(request: NextRequest) {
   const body = await request.text()
@@ -25,9 +22,9 @@ export async function POST(request: NextRequest) {
       const plan = planId ? PLANS.find((p) => p.id === planId) : null
 
       if (userId && plan) {
-        await supabaseAdmin
-          .from("profiles")
-          .update({
+        const profileRef = firebaseAdminDb.collection("profiles").doc(userId)
+        await profileRef.set(
+          {
             subscription_plan: planId,
             stripe_subscription_id: event.data.reference ?? null,
             email_credits: plan.emailCredits,
@@ -36,8 +33,9 @@ export async function POST(request: NextRequest) {
             paystack_subscription_code: event.data.subscription?.subscription_code ?? null,
             paystack_email_token: event.data.subscription?.email_token ?? null,
             updated_at: new Date().toISOString(),
-          })
-          .eq("id", userId)
+          },
+          { merge: true },
+        )
       }
     }
 

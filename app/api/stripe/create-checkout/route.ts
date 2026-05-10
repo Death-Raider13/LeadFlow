@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { PLANS } from "@/lib/plans"
+import { getServerUser } from "@/lib/firebase/server-auth"
 
 function getBaseUrl(request: NextRequest): string {
   // Try origin header first
@@ -29,12 +29,9 @@ function getBaseUrl(request: NextRequest): string {
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const decodedUser = await getServerUser()
 
-    if (!user) {
+    if (!decodedUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
@@ -61,7 +58,7 @@ export async function POST(request: NextRequest) {
       currency: "NGN",
       callback_url: `${baseUrl}/dashboard/billing`,
       metadata: {
-        userId: user.id,
+        userId: decodedUser.uid,
         planId: plan.id,
         billingCycle,
       },

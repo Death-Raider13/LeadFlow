@@ -2,7 +2,9 @@
 
 import type React from "react"
 
-import { createClient } from "@/lib/supabase/client"
+import { createUserWithEmailAndPassword } from "firebase/auth"
+import { doc, setDoc } from "firebase/firestore"
+import { firebaseAuth, firebaseDb } from "@/lib/firebase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -25,7 +27,6 @@ export default function SignUpPage() {
 
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
@@ -42,17 +43,35 @@ export default function SignUpPage() {
     }
 
     try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/dashboard`,
-          data: {
-            full_name: fullName,
-          },
-        },
+      const credential = await createUserWithEmailAndPassword(firebaseAuth, email, password)
+
+      const user = credential.user
+
+      await setDoc(doc(firebaseDb, "profiles", user.uid), {
+        id: user.uid,
+        full_name: fullName,
+        company_name: null,
+        subscription_plan: "free",
+        stripe_customer_id: null,
+        stripe_subscription_id: null,
+        email_credits: 50,
+        sms_credits: 20,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
       })
-      if (error) throw error
+
+      const idToken = await user.getIdToken()
+
+      const res = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
+      })
+
+      if (!res.ok) {
+        throw new Error("Failed to create session")
+      }
+
       router.push("/auth/sign-up-success")
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")

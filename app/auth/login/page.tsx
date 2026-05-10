@@ -2,7 +2,8 @@
 
 import type React from "react"
 
-import { createClient } from "@/lib/supabase/client"
+import { signInWithEmailAndPassword } from "firebase/auth"
+import { firebaseAuth } from "@/lib/firebase/client"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -22,17 +23,25 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
-    const supabase = createClient()
     setIsLoading(true)
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      const credential = await signInWithEmailAndPassword(firebaseAuth, email, password)
+      const idToken = await credential.user.getIdToken()
+
+      const res = await fetch("/api/auth/session", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ idToken }),
       })
-      if (error) throw error
+
+      if (!res.ok) {
+        throw new Error("Failed to create session")
+      }
+
       router.push("/dashboard")
+      router.refresh()
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : "An error occurred")
     } finally {

@@ -3,7 +3,8 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { firebaseAuth, firebaseDb } from "@/lib/firebase/client"
+import { collection, query, where, getDocs, setDoc, doc, updateDoc, writeBatch, orderBy } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -29,18 +30,15 @@ export function CampaignForm({ type, campaign, userId }: CampaignFormProps) {
 
   useEffect(() => {
     const fetchLeads = async () => {
-      const supabase = createClient()
-      const query = supabase.from("leads").select("*").eq("user_id", userId)
-
-      // Filter by contact method availability
+      let q = query(collection(firebaseDb, "leads"), where("user_id", "==", userId))
       if (type === "email") {
-        query.not("email", "is", null)
+        q = query(q, where("email", "!=", null))
       } else {
-        query.not("phone", "is", null)
+        q = query(q, where("phone", "!=", null))
       }
-
-      const { data } = await query.order("name")
-      setLeads(data || [])
+      q = query(q, orderBy("name"))
+      const snap = await getDocs(q)
+      setLeads(snap.docs.map((d) => ({ id: d.id, ...d.data() })) || [])
     }
     fetchLeads()
   }, [type, userId])
@@ -63,8 +61,6 @@ export function CampaignForm({ type, campaign, userId }: CampaignFormProps) {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const supabase = createClient()
-
     const campaignData = {
       name: formData.get("name") as string,
       type,
@@ -72,43 +68,38 @@ export function CampaignForm({ type, campaign, userId }: CampaignFormProps) {
       content: formData.get("content") as string,
       status: "draft" as const,
       user_id: userId,
+      updated_at: new Date().toISOString(),
     }
 
-    if (campaign) {
-      const { error: updateError } = await supabase
-        .from("campaigns")
-        .update({ ...campaignData, updated_at: new Date().toISOString() })
-        .eq("id", campaign.id)
-
-      if (updateError) {
-        setError(updateError.message)
-        setIsLoading(false)
-        return
+    try {
+      let campaignId = campaign?.id
+      if (campaign) {
+        await updateDoc(doc(firebaseDb, "campaigns", campaign.id), campaignData)
+      } else {
+        campaignId = crypto.randomUUID()
+        await setDoc(doc(firebaseDb, "campaigns", campaignId), {
+          ...campaignData,
+          created_at: new Date().toISOString(),
+        })
+        // Add recipients
+        if (selectedLeads.length > 0) {
+          const batch = writeBatch(firebaseDb)
+          selectedLeads.forEach((leadId) => {
+            const recRef = doc(firebaseDb, "campaign_recipients", crypto.randomUUID())
+            batch.set(recRef, {
+              campaign_id: campaignId,
+              lead_id: leadId,
+              status: "pending",
+              created_at: new Date().toISOString(),
+            })
+          })
+          await batch.commit()
+        }
       }
-    } else {
-      // Create campaign
-      const { data: newCampaign, error: insertError } = await supabase
-        .from("campaigns")
-        .insert(campaignData)
-        .select()
-        .single()
-
-      if (insertError) {
-        setError(insertError.message)
-        setIsLoading(false)
-        return
-      }
-
-      // Add recipients
-      if (selectedLeads.length > 0 && newCampaign) {
-        const recipients = selectedLeads.map((leadId) => ({
-          campaign_id: newCampaign.id,
-          lead_id: leadId,
-          status: "pending" as const,
-        }))
-
-        await supabase.from("campaign_recipients").insert(recipients)
-      }
+    } catch (err: any) {
+      setError(err.message || "Failed to save campaign.")
+      setIsLoading(false)
+      return
     }
 
     router.push(`/dashboard/campaigns/${type}`)

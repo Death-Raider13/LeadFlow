@@ -1,0 +1,3 @@
+{
+  "/api/paystack/cancel-subscription/route": "app/api/paystack/cancel-subscription/route.js"
+}

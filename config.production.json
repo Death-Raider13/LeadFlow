@@ -1,0 +1,23 @@
+{
+  "environment": "production",
+  "database": {
+    "connectionPoolSize": 20,
+    "queryTimeout": 15000,
+    "enableLogging": false
+  },
+  "security": {
+    "sessionTimeout": 1800000,
+    "maxLoginAttempts": 5,
+    "enableTwoFactor": true
+  },
+  "performance": {
+    "cacheSize": 1000,
+    "rateLimitWindow": 60000,
+    "maxConcurrentRequests": 200
+  },
+  "monitoring": {
+    "enableMetrics": true,
+    "logLevel": "warn",
+    "enableTracing": false
+  }
+}

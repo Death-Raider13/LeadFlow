@@ -1,21 +1,26 @@
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { serializeFirestoreData } from "@/lib/utils/serialization"
 import { CampaignsList } from "@/components/dashboard/campaigns-list"
 import { Button } from "@/components/ui/button"
 import { Plus } from "lucide-react"
 import Link from "next/link"
+import { redirect } from "next/navigation"
 
 export default async function WhatsAppCampaignsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getServerUser()
+  if (!user) {
+    redirect("/auth/login")
+  }
 
-  const { data: campaigns } = await supabase
-    .from("campaigns")
-    .select("*")
-    .eq("user_id", user?.id)
-    .eq("type", "sms")
-    .order("created_at", { ascending: false })
+  const campaignsSnap = await firebaseAdminDb
+    .collection("campaigns")
+    .where("user_id", "==", user.uid)
+    .where("type", "==", "sms")
+    .orderBy("created_at", "desc")
+    .get()
+  const campaignsData = campaignsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const campaigns = serializeFirestoreData(campaignsData)
 
   return (
     <div className="space-y-6">
@@ -32,7 +37,7 @@ export default async function WhatsAppCampaignsPage() {
         </Button>
       </div>
 
-      <CampaignsList campaigns={campaigns || []} type="sms" />
+      <CampaignsList campaigns={campaigns} type="sms" />
     </div>
   )
 }

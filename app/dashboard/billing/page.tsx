@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { BillingPage } from "@/components/dashboard/billing-page"
 import { PLANS } from "@/lib/plans"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
 
 interface BillingPageProps {
   searchParams: Promise<{
@@ -11,14 +12,14 @@ interface BillingPageProps {
 }
 
 export default async function BillingDashboardPage({ searchParams }: BillingPageProps) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const decodedUser = await getServerUser()
 
-  if (!user) {
+  if (!decodedUser) {
     redirect("/auth/login")
   }
+
+  const userId = decodedUser.uid
+  const userEmail = decodedUser.email || ""
 
   const resolvedSearchParams = await searchParams
   const reference = resolvedSearchParams.reference || resolvedSearchParams.trxref
@@ -42,20 +43,21 @@ export default async function BillingDashboardPage({ searchParams }: BillingPage
           if (verifyData.status && verifyData.data?.status === "success") {
             const metadata = verifyData.data.metadata || {}
             const planId = metadata.planId as string | undefined
-            const userId = metadata.userId as string | undefined
+            const userIdFromMeta = metadata.userId as string | undefined
             const plan = planId ? PLANS.find((p) => p.id === planId) : null
 
-            if (plan && userId === user.id) {
-              await supabase
-                .from("profiles")
-                .update({
+            if (plan && userIdFromMeta === userId) {
+              const profileRef = firebaseAdminDb.collection("profiles").doc(userId)
+              await profileRef.set(
+                {
                   subscription_plan: planId,
                   stripe_subscription_id: verifyData.data.reference ?? null,
                   email_credits: plan.emailCredits,
                   sms_credits: plan.smsCredits,
                   updated_at: new Date().toISOString(),
-                })
-                .eq("id", user.id)
+                },
+                { merge: true },
+              )
             }
           }
         } else {
@@ -70,7 +72,8 @@ export default async function BillingDashboardPage({ searchParams }: BillingPage
     redirect("/dashboard/billing")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const profileSnap = await firebaseAdminDb.collection("profiles").doc(userId).get()
+  const profile = profileSnap.exists ? profileSnap.data() : null
 
-  return <BillingPage profile={profile} userEmail={user.email || ""} />
+  return <BillingPage profile={profile} userEmail={userEmail} />
 }

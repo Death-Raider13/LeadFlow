@@ -3,7 +3,8 @@
 import type React from "react"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { firebaseAuth, firebaseDb } from "@/lib/firebase/client"
+import { doc, setDoc, updateDoc } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -29,8 +30,6 @@ export function LeadForm({ lead, userId }: LeadFormProps) {
     setError(null)
 
     const formData = new FormData(e.currentTarget)
-    const supabase = createClient()
-
     const leadData = {
       name: formData.get("name") as string,
       email: (formData.get("email") as string) || null,
@@ -39,29 +38,26 @@ export function LeadForm({ lead, userId }: LeadFormProps) {
       status: formData.get("status") as Lead["status"],
       notes: (formData.get("notes") as string) || null,
       user_id: userId,
+      updated_at: new Date().toISOString(),
     }
 
-    if (lead) {
-      // Update existing lead
-      const { error: updateError } = await supabase
-        .from("leads")
-        .update({ ...leadData, updated_at: new Date().toISOString() })
-        .eq("id", lead.id)
-
-      if (updateError) {
-        setError(updateError.message)
-        setIsLoading(false)
-        return
+    try {
+      if (lead) {
+        // Update existing lead
+        const leadRef = doc(firebaseDb, "leads", lead.id)
+        await updateDoc(leadRef, leadData)
+      } else {
+        // Create new lead (random id)
+        const newLeadRef = doc(firebaseDb, "leads", crypto.randomUUID())
+        await setDoc(newLeadRef, {
+          ...leadData,
+          created_at: new Date().toISOString(),
+        })
       }
-    } else {
-      // Create new lead
-      const { error: insertError } = await supabase.from("leads").insert(leadData)
-
-      if (insertError) {
-        setError(insertError.message)
-        setIsLoading(false)
-        return
-      }
+    } catch (err: any) {
+      setError(err.message || "Failed to save lead.")
+      setIsLoading(false)
+      return
     }
 
     router.push("/dashboard/leads")

@@ -1,35 +1,24 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { Timestamp } from "firebase-admin/firestore"
 import { decryptWithKey, encryptWithKey, generateRandomKey, unwrapUserKey, wrapUserKey } from "@/lib/encryption"
-
-interface CredentialsBody {
-  ultramsgInstanceId?: string
-  ultramsgToken?: string
-  gmailAddress?: string
-  gmailAppPassword?: string
-}
+import { withValidation, credentialsSchema, ValidatedRequest, getValidatedData } from "@/lib/validation"
 
 export async function GET() {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getServerUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data, error } = await supabase
-      .from("user_integrations")
-      .select("ultramsg_instance_enc, ultramsg_token_enc, gmail_address_enc, gmail_app_password_enc")
-      .eq("user_id", user.id)
-      .single()
+    const integrationsSnap = await firebaseAdminDb
+      .collection("user_integrations")
+      .where("user_id", "==", user.uid)
+      .limit(1)
+      .get()
 
-    if (error && error.code !== "PGRST116") {
-      console.error("Error fetching user_integrations:", error)
-      return NextResponse.json({ error: "Failed to load integration status" }, { status: 500 })
-    }
+    const data = integrationsSnap.docs.length > 0 ? integrationsSnap.docs[0].data() : null
 
     const hasWhatsApp = !!(data && data.ultramsg_instance_enc && data.ultramsg_token_enc)
     const hasGmail = !!(data && data.gmail_address_enc && data.gmail_app_password_enc)
@@ -41,29 +30,26 @@ export async function GET() {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const body = (await request.json()) as CredentialsBody
-    const { ultramsgInstanceId, ultramsgToken, gmailAddress, gmailAppPassword } = body
+export const POST = withValidation(
+  async (request: ValidatedRequest) => {
+    try {
+      const { body } = getValidatedData(request)
+      const { ultramsgInstanceId, ultramsgToken, gmailAddress, gmailAppPassword } = body
 
-    if (!ultramsgInstanceId && !ultramsgToken && !gmailAddress && !gmailAppPassword) {
-      return NextResponse.json({ error: "No credentials provided" }, { status: 400 })
-    }
-
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getServerUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: existing } = await supabase
-      .from("user_integrations")
-      .select("user_key_enc, ultramsg_instance_enc, ultramsg_token_enc, gmail_address_enc, gmail_app_password_enc")
-      .eq("user_id", user.id)
-      .maybeSingle()
+    // Check if user already has integrations
+    const integrationsSnap = await firebaseAdminDb
+      .collection("user_integrations")
+      .where("user_id", "==", user.uid)
+      .limit(1)
+      .get()
+
+    const existing = integrationsSnap.docs.length > 0 ? integrationsSnap.docs[0].data() : null
+    const existingDocId = integrationsSnap.docs.length > 0 ? integrationsSnap.docs[0].id : null
 
     let userKeyBase64: string
     let wrappedUserKeyPayload: any
@@ -77,9 +63,9 @@ export async function POST(request: NextRequest) {
     }
 
     const payload: any = {
-      user_id: user.id,
+      user_id: user.uid,
       user_key_enc: wrappedUserKeyPayload,
-      updated_at: new Date().toISOString(),
+      updated_at: Timestamp.now(),
     }
 
     if (ultramsgInstanceId) {
@@ -96,14 +82,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!existing) {
-      payload.created_at = new Date().toISOString()
-    }
-
-    const { error } = await supabase.from("user_integrations").upsert(payload, { onConflict: "user_id" })
-
-    if (error) {
-      console.error("Error saving user_integrations:", error)
-      return NextResponse.json({ error: "Failed to save credentials" }, { status: 500 })
+      payload.created_at = Timestamp.now()
+      // Create new document
+      await firebaseAdminDb.collection("user_integrations").add(payload)
+    } else {
+      // Update existing document
+      await firebaseAdminDb.collection("user_integrations").doc(existingDocId!).update(payload)
     }
 
     return NextResponse.json({ success: true })
@@ -111,4 +95,7 @@ export async function POST(request: NextRequest) {
     console.error("Integrations POST error:", err)
     return NextResponse.json({ error: err.message ?? "Unexpected error" }, { status: 500 })
   }
-}
+}, {
+  bodySchema: credentialsSchema,
+  validateHeaders: true,
+})

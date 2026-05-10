@@ -1,20 +1,28 @@
-import { createClient } from "@/lib/supabase/server"
 import { LeadsList } from "@/components/dashboard/leads-list"
 import { Button } from "@/components/ui/button"
 import { Plus, Upload } from "lucide-react"
 import Link from "next/link"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { serializeFirestoreData } from "@/lib/utils/serialization"
 
 export default async function LeadsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const decodedUser = await getServerUser()
 
-  const { data: leads } = await supabase
-    .from("leads")
-    .select("*")
-    .eq("user_id", user?.id)
-    .order("created_at", { ascending: false })
+  if (!decodedUser) {
+    return null
+  }
+
+  const userId = decodedUser.uid
+
+  const leadsSnap = await firebaseAdminDb
+    .collection("leads")
+    .where("user_id", "==", userId)
+    .orderBy("created_at", "desc")
+    .get()
+
+  const leadsData = leadsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const leads = serializeFirestoreData(leadsData)
 
   return (
     <div className="space-y-6">

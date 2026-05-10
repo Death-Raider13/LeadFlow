@@ -1,14 +1,15 @@
 "use client"
 
 import { useState } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { firebaseAuth, firebaseDb } from "@/lib/firebase/client"
+import { doc, updateDoc, deleteDoc } from "firebase/firestore"
 import { useRouter } from "next/navigation"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, MoreHorizontal, Mail, MessageSquare, Trash2, Edit, Users } from "lucide-react"
+import { Search, MoreHorizontal, Mail, MessageSquare, Trash2, Edit, Users, Globe } from "lucide-react"
 import type { Lead } from "@/lib/types"
 import Link from "next/link"
 
@@ -34,24 +35,22 @@ export function LeadsList({ initialLeads }: LeadsListProps) {
   })
 
   const handleDelete = async (id: string) => {
-    const supabase = createClient()
-    const { error } = await supabase.from("leads").delete().eq("id", id)
-
-    if (!error) {
+    try {
+      await deleteDoc(doc(firebaseDb, "leads", id))
       setLeads(leads.filter((lead) => lead.id !== id))
+    } catch {
+      // Optionally show error toast
     }
   }
 
   const handleStatusChange = async (id: string, newStatus: Lead["status"]) => {
-    const supabase = createClient()
-    const { error } = await supabase
-      .from("leads")
-      .update({ status: newStatus, updated_at: new Date().toISOString() })
-      .eq("id", id)
-
-    if (!error) {
+    try {
+      await updateDoc(doc(firebaseDb, "leads", id), {
+        status: newStatus,
+        updated_at: new Date().toISOString(),
+      })
       setLeads(leads.map((lead) => (lead.id === id ? { ...lead, status: newStatus } : lead)))
-    }
+    } catch {}
   }
 
   return (
@@ -97,6 +96,7 @@ export function LeadsList({ initialLeads }: LeadsListProps) {
                     <th className="text-left p-4 font-medium text-sm">Name</th>
                     <th className="text-left p-4 font-medium text-sm hidden sm:table-cell">Email</th>
                     <th className="text-left p-4 font-medium text-sm hidden md:table-cell">Phone</th>
+                    <th className="text-left p-4 font-medium text-sm hidden lg:table-cell">Website</th>
                     <th className="text-left p-4 font-medium text-sm hidden lg:table-cell">Source</th>
                     <th className="text-left p-4 font-medium text-sm">Status</th>
                     <th className="text-right p-4 font-medium text-sm">Actions</th>
@@ -115,6 +115,19 @@ export function LeadsList({ initialLeads }: LeadsListProps) {
                       </td>
                       <td className="p-4 text-muted-foreground hidden sm:table-cell">{lead.email || "—"}</td>
                       <td className="p-4 text-muted-foreground hidden md:table-cell">{lead.phone || "—"}</td>
+                      <td className="p-4 text-muted-foreground hidden lg:table-cell">
+                        {((lead.metadata?.contact as any)?.website || (lead as any).website) ? (
+                          <a 
+                            href={((lead.metadata?.contact as any)?.website || (lead as any).website)} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline flex items-center gap-1"
+                          >
+                            <Globe className="h-3 w-3" />
+                            Visit
+                          </a>
+                        ) : "—"}
+                      </td>
                       <td className="p-4 text-muted-foreground hidden lg:table-cell capitalize">
                         {lead.source || "—"}
                       </td>

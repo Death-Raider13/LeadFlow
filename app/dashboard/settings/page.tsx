@@ -3,7 +3,9 @@
 import type React from "react"
 
 import { useState, useEffect } from "react"
-import { createClient } from "@/lib/supabase/client"
+import { onAuthStateChanged } from "firebase/auth"
+import { doc, getDoc, updateDoc } from "firebase/firestore"
+import { firebaseAuth, firebaseDb } from "@/lib/firebase/client"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -34,13 +36,18 @@ export default function SettingsPage() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const supabase = createClient()
-      const {
-        data: { user },
-      } = await supabase.auth.getUser()
-      if (user) {
-        const { data } = await supabase.from("profiles").select("full_name, company_name").eq("id", user.id).single()
-        setProfile(data)
+      const user = firebaseAuth.currentUser
+
+      if (!user) {
+        return
+      }
+
+      const profileRef = doc(firebaseDb, "profiles", user.uid)
+      const snap = await getDoc(profileRef)
+
+      if (snap.exists()) {
+        const data = snap.data() as { full_name: string; company_name: string | null }
+        setProfile({ full_name: data.full_name, company_name: data.company_name || "" })
       }
     }
 
@@ -60,7 +67,6 @@ export default function SettingsPage() {
       }
     }
 
-    fetchProfile()
     fetchIntegrationsStatus()
   }, [])
 
@@ -70,23 +76,22 @@ export default function SettingsPage() {
     setSuccess(false)
 
     const formData = new FormData(e.currentTarget)
-    const supabase = createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const user = firebaseAuth.currentUser
 
-    if (user) {
-      await supabase
-        .from("profiles")
-        .update({
-          full_name: formData.get("full_name") as string,
-          company_name: formData.get("company_name") as string,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", user.id)
-
-      setSuccess(true)
+    if (!user) {
+      setIsLoading(false)
+      return
     }
+
+    const profileRef = doc(firebaseDb, "profiles", user.uid)
+
+    await updateDoc(profileRef, {
+      full_name: formData.get("full_name") as string,
+      company_name: (formData.get("company_name") as string) || "",
+      updated_at: new Date().toISOString(),
+    })
+
+    setSuccess(true)
 
     setIsLoading(false)
   }

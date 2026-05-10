@@ -5,11 +5,11 @@ import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Zap, LayoutDashboard, Users, Mail, MessageSquare, BarChart3, Settings, CreditCard } from "lucide-react"
-import type { User } from "@supabase/supabase-js"
+import type { User } from "firebase/auth"
 import type { Profile } from "@/lib/types"
 
 interface SidebarProps {
-  user: User
+  user?: User | any
   profile: Profile | null
   leadLimit?: number | null
   leadsUsedThisMonth?: number

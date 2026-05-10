@@ -1,19 +1,25 @@
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Users, Mail, MessageSquare, TrendingUp, CheckCircle, Clock, XCircle } from "lucide-react"
+import { redirect } from "next/navigation"
 
 export default async function AnalyticsPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const user = await getServerUser()
+  if (!user) {
+    redirect("/auth/login")
+  }
 
   // Fetch lead stats by status
-  const { data: leads } = await supabase.from("leads").select("status").eq("user_id", user?.id)
+  const leadsSnap = await firebaseAdminDb
+    .collection("leads")
+    .where("user_id", "==", user.uid)
+    .get()
+  const leads = leadsSnap.docs.map((doc) => doc.data())
 
   const statusCounts =
     leads?.reduce(
-      (acc, lead) => {
+      (acc: Record<string, number>, lead: any) => {
         acc[lead.status] = (acc[lead.status] || 0) + 1
         return acc
       },
@@ -25,18 +31,20 @@ export default async function AnalyticsPage() {
   const conversionRate = totalLeads > 0 ? Math.round((convertedLeads / totalLeads) * 100) : 0
 
   // Fetch campaign stats
-  const { count: totalCampaigns } = await supabase
-    .from("campaigns")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user?.id)
+  const totalCampaignsSnap = await firebaseAdminDb
+    .collection("campaigns")
+    .where("user_id", "==", user.uid)
+    .get()
+  const totalCampaigns = totalCampaignsSnap.docs.length
 
-  const { count: sentCampaigns } = await supabase
-    .from("campaigns")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user?.id)
-    .eq("status", "sent")
+  const sentCampaignsSnap = await firebaseAdminDb
+    .collection("campaigns")
+    .where("user_id", "==", user.uid)
+    .where("status", "==", "sent")
+    .get()
+  const sentCampaigns = sentCampaignsSnap.docs.length
 
-  const hasActivity = totalLeads > 0 || (totalCampaigns || 0) > 0 || (sentCampaigns || 0) > 0
+  const hasActivity = totalLeads > 0 || totalCampaigns > 0 || sentCampaigns > 0
 
   return (
     <div className="space-y-6">

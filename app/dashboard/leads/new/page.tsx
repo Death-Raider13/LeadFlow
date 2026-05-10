@@ -1,14 +1,11 @@
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { LeadForm } from "@/components/dashboard/lead-form"
+import { getServerUser } from "@/lib/firebase/server-auth"
 
 export default async function NewLeadPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const decodedUser = await getServerUser()
 
-  if (!user) {
+  if (!decodedUser) {
     redirect("/auth/login")
   }
 
@@ -18,7 +15,7 @@ export default async function NewLeadPage() {
         <h1 className="text-2xl font-bold">Add New Lead</h1>
         <p className="text-muted-foreground">Enter the lead&apos;s information below</p>
       </div>
-      <LeadForm userId={user.id} />
+      <LeadForm userId={decodedUser.uid} />
     </div>
   )
 }

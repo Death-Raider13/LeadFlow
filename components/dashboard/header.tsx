@@ -25,7 +25,7 @@ import {
   MessageSquare,
   CreditCard,
 } from "lucide-react"
-import type { User as SupabaseUser } from "@supabase/supabase-js"
+import type { User as FirebaseUser } from "firebase/auth"
 import type { Profile } from "@/lib/types"
 import Link from "next/link"
 import {
@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/dialog"
 
 interface HeaderProps {
-  user: SupabaseUser
+  user: FirebaseUser | any
   profile: Profile | null
 }
 

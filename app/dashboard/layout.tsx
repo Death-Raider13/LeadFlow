@@ -1,26 +1,29 @@
 import type React from "react"
 import { redirect } from "next/navigation"
-import { createClient } from "@/lib/supabase/server"
 import { DashboardSidebar } from "@/components/dashboard/sidebar"
 import { DashboardHeader } from "@/components/dashboard/header"
 import { PLANS } from "@/lib/plans"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { serializeFirestoreData } from "@/lib/utils/serialization"
+import { Timestamp } from "firebase-admin/firestore"
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  const supabase = await createClient()
-  const {
-    data: { user },
-    error,
-  } = await supabase.auth.getUser()
+  const decodedUser = await getServerUser()
 
-  if (error || !user) {
+  if (!decodedUser) {
     redirect("/auth/login")
   }
 
-  const { data: profile } = await supabase.from("profiles").select("*").eq("id", user.id).single()
+  const user = { id: decodedUser.uid, email: decodedUser.email ?? null }
+
+  const profileSnap = await firebaseAdminDb.collection("profiles").doc(user.id).get()
+  const profileData = profileSnap.exists ? profileSnap.data() : null
+  const profile = serializeFirestoreData(profileData)
 
   if (profile && profile.accepted_policy === false) {
     redirect("/policy")
@@ -35,24 +38,23 @@ export default async function DashboardLayout({
 
     if (leadLimit !== null) {
       const now = new Date()
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
-      const { count } = await supabase
-        .from("leads")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .gte("created_at", startOfMonth)
-        .lt("created_at", startOfNextMonth)
+      const leadsSnap = await firebaseAdminDb
+        .collection("leads")
+        .where("user_id", "==", user.id)
+        .where("created_at", ">=", Timestamp.fromDate(startOfMonth))
+        .where("created_at", "<", Timestamp.fromDate(startOfNextMonth))
+        .get()
 
-      leadsUsedThisMonth = count || 0
+      leadsUsedThisMonth = leadsSnap.size
     }
   }
 
   return (
     <div className="flex min-h-screen bg-muted/30">
       <DashboardSidebar
-        user={user}
         profile={profile}
         leadLimit={leadLimit}
         leadsUsedThisMonth={leadsUsedThisMonth}

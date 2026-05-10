@@ -1,22 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { Timestamp } from "firebase-admin/firestore"
 import { PLANS } from "@/lib/plans"
+import { withValidation, generateLeadsSchema, ValidatedRequest, getValidatedData } from "@/lib/validation"
+import { ExternalApiValidator, circuitBreakerManager } from "@/lib/external-api"
 
-interface GenerateRequestBody {
-  category?: string
-  location?: string
-  searchMode?: "random" | "nearest" | "explore"
-  excludePlaceIds?: string[]
-}
-
-export async function POST(request: NextRequest) {
-  try {
-    const { category = "restaurant", location, searchMode = "random", excludePlaceIds = [] } =
-      (await request.json()) as GenerateRequestBody
-
-    if (!location || !location.trim()) {
-      return NextResponse.json({ error: "Location is required" }, { status: 400 })
-    }
+export const POST = withValidation(
+  async (request: ValidatedRequest) => {
+    try {
+      const { body } = getValidatedData(request)
+      const { category, location, searchMode, excludePlaceIds } = body
 
     const geoapifyKey = process.env.GEOAPIFY_API_KEY
     if (!geoapifyKey) {
@@ -26,37 +20,34 @@ export async function POST(request: NextRequest) {
     const rapidapiKey = process.env.RAPIDAPI_LOCAL_BUSINESS_KEY || ""
     const scraperbeeKey = process.env.SCRAPERBEE_API_KEY || ""
 
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getServerUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: profile } = await supabase.from("profiles").select("subscription_plan").eq("id", user.id).single()
+    // Fetch user profile from Firestore to get subscription plan
+    const profileSnap = await firebaseAdminDb
+      .collection("profiles")
+      .where("user_id", "==", user.uid)
+      .limit(1)
+      .get()
 
+    const profile = profileSnap.docs.length > 0 ? profileSnap.docs[0].data() : null
     const currentPlan = PLANS.find((p) => p.id === profile?.subscription_plan) || PLANS[0]
 
     if (currentPlan.leadLimit !== null) {
       const now = new Date()
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
-      const { data: monthlyLeads, error: leadsError } = await supabase
-        .from("leads")
-        .select("id, created_at", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .gte("created_at", startOfMonth)
-        .lt("created_at", startOfNextMonth)
+      const leadsSnap = await firebaseAdminDb
+        .collection("leads")
+        .where("user_id", "==", user.uid)
+        .where("created_at", ">=", Timestamp.fromDate(startOfMonth))
+        .where("created_at", "<", Timestamp.fromDate(startOfNextMonth))
+        .get()
 
-      if (leadsError) {
-        console.error("Error counting monthly leads:", leadsError)
-        return NextResponse.json({ error: "Failed to check lead quota" }, { status: 500 })
-      }
-
-      const usedThisMonth = (monthlyLeads as any)?.length ?? (monthlyLeads as any)?.count ?? 0
+      const usedThisMonth = leadsSnap.docs.length
 
       if (usedThisMonth >= currentPlan.leadLimit) {
         return NextResponse.json(
@@ -85,13 +76,18 @@ export async function POST(request: NextRequest) {
     const geoapifyCategory = categoryMap[category] || category
 
     const geocodeUrl = `https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(location)}&apiKey=${geoapifyKey}`
-    const geocodeResponse = await fetch(geocodeUrl)
+    
+    // Use validated API call with circuit breaker
+    const geoapifyBreaker = circuitBreakerManager.getCircuitBreaker('geoapify-geocode')
+    const geocodeResult = await geoapifyBreaker.execute(async () => {
+      return await ExternalApiValidator.validateGeoapifyGeocode(geocodeUrl, geoapifyKey)
+    })
 
-    if (!geocodeResponse.ok) {
-      throw new Error(`Geocoding failed: ${geocodeResponse.status}`)
+    if (!geocodeResult.success) {
+      throw new Error("Location not found. Please try a different location.")
     }
 
-    const geocodeData: any = await geocodeResponse.json()
+    const geocodeData = geocodeResult.data!
 
     if (!geocodeData.features || geocodeData.features.length === 0) {
       throw new Error("Location not found. Please try a different location.")
@@ -121,13 +117,18 @@ export async function POST(request: NextRequest) {
     }
 
     const placesUrl = `https://api.geoapify.com/v2/places?categories=${geoapifyCategory}&filter=circle:${lon},${lat},${radius}&bias=proximity:${lon},${lat}&limit=20&offset=${offset}&apiKey=${geoapifyKey}`
-    const placesResponse = await fetch(placesUrl)
+    
+    // Use validated API call with circuit breaker
+    const placesBreaker = circuitBreakerManager.getCircuitBreaker('geoapify-places')
+    const placesResult = await placesBreaker.execute(async () => {
+      return await ExternalApiValidator.validateGeoapifyPlaces(placesUrl)
+    })
 
-    if (!placesResponse.ok) {
-      throw new Error(`Geoapify search failed: ${placesResponse.status}`)
+    if (!placesResult.success) {
+      return NextResponse.json({ places: [], leadsCreated: 0 })
     }
 
-    const placesData: any = await placesResponse.json()
+    const placesData = placesResult.data!
 
     if (!placesData.features || placesData.features.length === 0) {
       return NextResponse.json({ places: [], leadsCreated: 0 })
@@ -156,8 +157,20 @@ export async function POST(request: NextRequest) {
       const placeName = place.properties.name || "Unnamed Place"
 
       const detailsUrl = `https://api.geoapify.com/v2/place-details?id=${placeId}&apiKey=${geoapifyKey}`
-      const detailsResponse = await fetch(detailsUrl)
-      const detailsData: any = await detailsResponse.json()
+      
+      // Use validated API call for place details
+      const detailsBreaker = circuitBreakerManager.getCircuitBreaker('geoapify-details')
+      const detailsResult = await detailsBreaker.execute(async () => {
+        return await ExternalApiValidator.makeValidatedApiCall(
+          detailsUrl,
+          { method: 'GET' },
+          ExternalApiValidator.geoapifyPlaceDetailsResponseSchema,
+          'Geoapify Details',
+          { fallbackData: { type: 'FeatureCollection' as const, features: [] } }
+        )
+      })
+
+      const detailsData = detailsResult.success ? detailsResult.data! : { type: 'FeatureCollection' as const, features: [] }
 
       const geoapifyContact = detailsData.features?.[0]?.properties?.datasource?.raw || {}
       const finalContact: any = { ...geoapifyContact }
@@ -174,32 +187,29 @@ export async function POST(request: NextRequest) {
             query,
           )}&lat=${lat}&lng=${lon}&limit=1&language=en&extract_emails_and_contacts=true`
 
-          const rapidResponse = await fetch(rapidUrl, {
-            method: "GET",
-            headers: {
+          // Use validated API call with circuit breaker for RapidAPI
+          const rapidBreaker = circuitBreakerManager.getCircuitBreaker('rapidapi-business')
+          const rapidResult = await rapidBreaker.execute(async () => {
+            return await ExternalApiValidator.validateRapidApiBusiness(rapidUrl, {
               "x-rapidapi-host": "local-business-data.p.rapidapi.com",
               "x-rapidapi-key": rapidapiKey,
-            },
+            })
           })
 
-          if (rapidResponse.ok) {
-            const rapidData: any = await rapidResponse.json()
+          if (rapidResult.success && rapidResult.data?.data && rapidResult.data.data.length > 0) {
+            const rapidPlace = rapidResult.data.data[0]
 
-            if (rapidData.data && rapidData.data.length > 0) {
-              const rapidPlace = rapidData.data[0]
-
-              if (!hasPhone && rapidPlace.phone_number) {
-                finalContact.phone = rapidPlace.phone_number
-                sources.push("rapidapi")
-              }
-              if (!hasEmail && rapidPlace.email) {
-                finalContact.email = rapidPlace.email
-                sources.push("rapidapi")
-              }
-              if (!hasWebsite && rapidPlace.website) {
-                finalContact.website = rapidPlace.website
-                sources.push("rapidapi")
-              }
+            if (!hasPhone && rapidPlace.phone_number) {
+              finalContact.phone = rapidPlace.phone_number
+              sources.push("rapidapi")
+            }
+            if (!hasEmail && rapidPlace.email) {
+              finalContact.email = rapidPlace.email
+              sources.push("rapidapi")
+            }
+            if (!hasWebsite && rapidPlace.website) {
+              finalContact.website = rapidPlace.website
+              sources.push("rapidapi")
             }
           }
         } catch (rapidError) {
@@ -217,12 +227,16 @@ export async function POST(request: NextRequest) {
             "Extract all contact information including email addresses, phone numbers, WhatsApp numbers, and social media links (Facebook, Instagram, Twitter, LinkedIn)",
           )}&render_js=false`
 
-          const scraperbeeResponse = await fetch(scraperbeeUrl)
+          // Use validated API call with circuit breaker for ScraperBee
+          const scraperbeeBreaker = circuitBreakerManager.getCircuitBreaker('scraperbee')
+          const scraperbeeResult = await scraperbeeBreaker.execute(async () => {
+            return await ExternalApiValidator.validateScraperBee(scraperbeeUrl)
+          })
 
-          console.log("ScraperBee status:", scraperbeeResponse.status)
+          console.log("ScraperBee result:", scraperbeeResult.success)
 
-          if (scraperbeeResponse.ok) {
-            const html = await scraperbeeResponse.text()
+          if (scraperbeeResult.success && scraperbeeResult.data) {
+            const html = scraperbeeResult.data
 
             const emailRegex = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/g
             const emails = html.match(emailRegex)
@@ -278,7 +292,7 @@ export async function POST(request: NextRequest) {
     }
 
     let leadsToInsert = detailedPlaces.map((place) => ({
-      user_id: user.id,
+      user_id: user.uid,
       name: place.name,
       email: place.contact.email || null,
       phone: place.contact.phone || null,
@@ -291,23 +305,25 @@ export async function POST(request: NextRequest) {
         contact: place.contact,
         sources: place.sources,
       },
+      created_at: Timestamp.now(),
+      updated_at: Timestamp.now(),
     }))
 
     let insertError: string | null = null
 
     if (currentPlan.leadLimit !== null && leadsToInsert.length > 0) {
       const now = new Date()
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString()
-      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString()
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+      const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
-      const { count } = await supabase
-        .from("leads")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .gte("created_at", startOfMonth)
-        .lt("created_at", startOfNextMonth)
+      const leadsSnap = await firebaseAdminDb
+        .collection("leads")
+        .where("user_id", "==", user.uid)
+        .where("created_at", ">=", Timestamp.fromDate(startOfMonth))
+        .where("created_at", "<", Timestamp.fromDate(startOfNextMonth))
+        .get()
 
-      const usedThisMonth = count || 0
+      const usedThisMonth = leadsSnap.docs.length
       const remaining = Math.max(0, currentPlan.leadLimit - usedThisMonth)
 
       if (remaining <= 0) {
@@ -326,8 +342,17 @@ export async function POST(request: NextRequest) {
     }
 
     if (leadsToInsert.length > 0) {
-      const { error } = await supabase.from("leads").insert(leadsToInsert)
-      if (error) {
+      try {
+        const batch = firebaseAdminDb.batch()
+        const leadsRef = firebaseAdminDb.collection("leads")
+
+        leadsToInsert.forEach((lead) => {
+          const docRef = leadsRef.doc() // Auto-generate ID
+          batch.set(docRef, lead)
+        })
+
+        await batch.commit()
+      } catch (error: any) {
         console.error("Error inserting leads:", error)
         insertError = error.message
       }
@@ -338,4 +363,7 @@ export async function POST(request: NextRequest) {
     console.error("Lead generation error:", error)
     return NextResponse.json({ error: error.message ?? "Failed to generate leads" }, { status: 500 })
   }
-}
+}, {
+  bodySchema: generateLeadsSchema,
+  validateHeaders: false,
+})

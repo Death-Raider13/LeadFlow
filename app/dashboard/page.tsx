@@ -1,39 +1,46 @@
-import { createClient } from "@/lib/supabase/server"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Users, Mail, MessageSquare, TrendingUp, Plus, ArrowUpRight } from "lucide-react"
 import Link from "next/link"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { serializeFirestoreData } from "@/lib/utils/serialization"
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+  const decodedUser = await getServerUser()
 
-  // Fetch stats
-  const { count: leadsCount } = await supabase
-    .from("leads")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user?.id)
+  if (!decodedUser) {
+    return null
+  }
 
-  const { count: emailCampaigns } = await supabase
-    .from("campaigns")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user?.id)
-    .eq("type", "email")
+  const userId = decodedUser.uid
 
-  const { count: smsCampaigns } = await supabase
-    .from("campaigns")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", user?.id)
-    .eq("type", "sms")
+  const leadsSnap = await firebaseAdminDb.collection("leads").where("user_id", "==", userId).get()
+  const leadsCount = leadsSnap.size
 
-  const { data: recentLeads } = await supabase
-    .from("leads")
-    .select("*")
-    .eq("user_id", user?.id)
-    .order("created_at", { ascending: false })
+  const emailCampaignsSnap = await firebaseAdminDb
+    .collection("campaigns")
+    .where("user_id", "==", userId)
+    .where("type", "==", "email")
+    .get()
+  const emailCampaigns = emailCampaignsSnap.size
+
+  const smsCampaignsSnap = await firebaseAdminDb
+    .collection("campaigns")
+    .where("user_id", "==", userId)
+    .where("type", "==", "sms")
+    .get()
+  const smsCampaigns = smsCampaignsSnap.size
+
+  const recentLeadsSnap = await firebaseAdminDb
+    .collection("leads")
+    .where("user_id", "==", userId)
+    .orderBy("created_at", "desc")
     .limit(5)
+    .get()
+
+  const recentLeadsData = recentLeadsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+  const recentLeads = serializeFirestoreData(recentLeadsData)
 
   const stats = [
     { name: "Total Leads", value: leadsCount || 0, icon: Users, change: "+12%" },

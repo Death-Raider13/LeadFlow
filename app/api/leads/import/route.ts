@@ -1,5 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { Timestamp } from "firebase-admin/firestore"
 
 interface ImportBody {
   leads: Record<string, string>[]
@@ -12,11 +14,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid request" }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getServerUser()
     if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
     // Map incoming rows to expected lead fields.
@@ -34,18 +32,30 @@ export async function POST(request: NextRequest) {
         source: (r.source || r.company || null) as string | null,
         status: ((r.status as any) || "new") as string,
         notes: (r.notes || r.note || null) as string | null,
-        user_id: user.id,
+        user_id: user.uid,
+        created_at: Timestamp.now(),
+        updated_at: Timestamp.now(),
       }
     })
 
     // Insert in batches to avoid huge single inserts
     const chunkSize = 200
+    const leadsRef = firebaseAdminDb.collection("leads")
+
     for (let i = 0; i < rows.length; i += chunkSize) {
       const chunk = rows.slice(i, i + chunkSize)
-      const { error } = await supabase.from("leads").insert(chunk)
-      if (error) {
+      const batch = firebaseAdminDb.batch()
+
+      chunk.forEach((lead) => {
+        const docRef = leadsRef.doc() // Auto-generate ID
+        batch.set(docRef, lead)
+      })
+
+      try {
+        await batch.commit()
+      } catch (error) {
         console.error("Insert error:", error)
-        return NextResponse.json({ error: error.message }, { status: 500 })
+        return NextResponse.json({ error: "Failed to import leads" }, { status: 500 })
       }
     }
 

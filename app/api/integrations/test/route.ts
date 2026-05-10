@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
 import nodemailer from "nodemailer"
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
 import { decryptWithKey, unwrapUserKey } from "@/lib/encryption"
 
 interface TestBody {
@@ -15,25 +16,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "type must be 'gmail' or 'whatsapp'" }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
-    if (!user) {
+    const decodedUser = await getServerUser()
+    if (!decodedUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
-
-    const { data: integration, error } = await supabase
-      .from("user_integrations")
-      .select("user_key_enc, gmail_address_enc, gmail_app_password_enc, ultramsg_instance_enc, ultramsg_token_enc")
-      .eq("user_id", user.id)
-      .single()
-
-    if (error || !integration) {
+    const userId = decodedUser.uid
+    const integrationSnap = await firebaseAdminDb.collection("user_integrations").doc(userId).get()
+    if (!integrationSnap.exists) {
       return NextResponse.json({ error: "Integrations not configured" }, { status: 400 })
     }
-
+    const integration = integrationSnap.data() as any
     const userKeyBase64 = unwrapUserKey(integration.user_key_enc)
 
     if (body.type === "gmail") {

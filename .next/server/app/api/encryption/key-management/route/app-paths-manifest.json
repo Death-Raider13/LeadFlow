@@ -1,0 +1,3 @@
+{
+  "/api/encryption/key-management/route": "app/api/encryption/key-management/route.js"
+}

@@ -1,27 +1,25 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
 import { PLANS } from "@/lib/plans"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
 
 export async function POST(_request: NextRequest) {
   try {
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
+    const decodedUser = await getServerUser()
 
-    if (!user) {
+    if (!decodedUser) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("paystack_subscription_code, paystack_email_token")
-      .eq("id", user.id)
-      .single()
+    const userId = decodedUser.uid
 
-    if (profileError || !profile) {
+    const profileSnap = await firebaseAdminDb.collection("profiles").doc(userId).get()
+
+    if (!profileSnap.exists) {
       return NextResponse.json({ error: "Profile not found" }, { status: 404 })
     }
+
+    const profile = profileSnap.data() as any
 
     if (!profile.paystack_subscription_code || !profile.paystack_email_token) {
       return NextResponse.json({ error: "No active Paystack subscription to cancel" }, { status: 400 })
@@ -53,19 +51,20 @@ export async function POST(_request: NextRequest) {
 
     const freePlan = PLANS.find((p) => p.id === "free") || PLANS[0]
 
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({
-        subscription_plan: "free",
-        paystack_subscription_code: null,
-        paystack_email_token: null,
-        email_credits: freePlan.emailCredits,
-        sms_credits: freePlan.smsCredits,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", user.id)
-
-    if (updateError) {
+    try {
+      const profileRef = firebaseAdminDb.collection("profiles").doc(userId)
+      await profileRef.set(
+        {
+          subscription_plan: "free",
+          paystack_subscription_code: null,
+          paystack_email_token: null,
+          email_credits: freePlan.emailCredits,
+          sms_credits: freePlan.smsCredits,
+          updated_at: new Date().toISOString(),
+        },
+        { merge: true },
+      )
+    } catch (updateError) {
       console.error("Error updating profile after subscription cancel:", updateError)
       return NextResponse.json({ error: "Subscription cancelled on Paystack, but failed to update profile" }, { status: 500 })
     }

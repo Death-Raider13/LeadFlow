@@ -1,11 +1,7 @@
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
 import { redirect, notFound } from "next/navigation"
 import { CampaignForm } from "@/components/dashboard/campaign-form"
-
-function isValidUUID(str: string) {
-  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-  return uuidRegex.test(str)
-}
 
 export default async function EditWhatsAppCampaignPage({
   params,
@@ -18,28 +14,19 @@ export default async function EditWhatsAppCampaignPage({
     redirect("/dashboard/campaigns/sms/new")
   }
 
-  if (!isValidUUID(id)) {
-    notFound()
-  }
-
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
+  const user = await getServerUser()
   if (!user) {
     redirect("/auth/login")
   }
 
-  const { data: campaign } = await supabase
-    .from("campaigns")
-    .select("*")
-    .eq("id", id)
-    .eq("user_id", user.id)
-    .eq("type", "sms")
-    .single()
+  const campaignSnap = await firebaseAdminDb.collection("campaigns").doc(id).get()
 
-  if (!campaign) {
+  if (!campaignSnap.exists) {
+    notFound()
+  }
+
+  const campaign = campaignSnap.data()
+  if (campaign.user_id !== user.uid || campaign.type !== "sms") {
     notFound()
   }
 
@@ -49,7 +36,7 @@ export default async function EditWhatsAppCampaignPage({
         <h1 className="text-2xl font-bold">Edit WhatsApp Campaign</h1>
         <p className="text-muted-foreground">Update your WhatsApp campaign</p>
       </div>
-      <CampaignForm type="sms" campaign={campaign} userId={user.id} />
+      <CampaignForm type="sms" campaign={{ id, ...campaign }} userId={user.uid} />
     </div>
   )
 }

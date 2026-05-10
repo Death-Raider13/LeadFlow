@@ -1,0 +1,3 @@
+{
+  "/dashboard/campaigns/email/[id]/send/page": "app/dashboard/campaigns/email/[id]/send/page.js"
+}

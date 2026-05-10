@@ -1,21 +1,35 @@
-import { createServerClient } from "@supabase/ssr"
-import { cookies } from "next/headers"
+import { getServerUser } from "@/lib/firebase/server-auth"
+
+function createFromStub() {
+	const message = `Supabase DB shim (server): DB methods are not implemented. Please migrate server routes to Firestore using \
+	'@/lib/firebase/admin' (Firestore) or implement a proper adapter.`
+
+	const chain: any = {
+		select() { return chain },
+		eq() { return chain },
+		gte() { return chain },
+		in() { return chain },
+		update() { return Promise.reject(new Error(message)) },
+		insert() { return Promise.reject(new Error(message)) },
+		single() { return Promise.reject(new Error(message)) },
+		then() { return Promise.reject(new Error(message)) },
+	}
+
+	return chain
+}
 
 export async function createClient() {
-  const cookieStore = await cookies()
-
-  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      getAll() {
-        return cookieStore.getAll()
-      },
-      setAll(cookiesToSet) {
-        try {
-          cookiesToSet.forEach(({ name, value, options }) => cookieStore.set(name, value, options))
-        } catch {
-          // The "setAll" method was called from a Server Component.
-        }
-      },
-    },
-  })
+	return {
+		auth: {
+			async getUser() {
+				const user = await getServerUser()
+				return { data: { user } }
+			},
+		},
+		from(_table: string) {
+			return createFromStub()
+		},
+	}
 }
+
+export default createClient

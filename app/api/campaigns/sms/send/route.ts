@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server"
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { Timestamp } from "firebase-admin/firestore"
 import { decryptWithKey, unwrapUserKey } from "@/lib/encryption"
 
 interface SendCampaignBody {
@@ -26,64 +28,74 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "campaignId is required" }, { status: 400 })
     }
 
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getServerUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: campaign, error: campaignError } = await supabase
-      .from("campaigns")
-      .select("*")
-      .eq("id", campaignId)
-      .eq("user_id", user.id)
-      .eq("type", "sms")
-      .single()
+    // Fetch campaign from Firestore
+    const campaignSnap = await firebaseAdminDb.collection("campaigns").doc(campaignId).get()
 
-    if (campaignError || !campaign) {
+    if (!campaignSnap.exists) {
       return NextResponse.json({ error: "Campaign not found" }, { status: 404 })
     }
 
-    const { data: recipientsData, error: recipientsError } = await supabase
-      .from("campaign_recipients")
-      .select("*, leads(*)")
-      .eq("campaign_id", campaignId)
+    const campaign = campaignSnap.data() as any
 
-    if (recipientsError) {
-      console.error("Error fetching recipients:", recipientsError)
-      return NextResponse.json({ error: "Failed to load recipients" }, { status: 500 })
+    // Verify campaign belongs to user and is SMS type
+    if (campaign?.user_id !== user.uid || campaign?.type !== "sms") {
+      return NextResponse.json({ error: "Campaign not found" }, { status: 404 })
     }
 
-    const recipients = (recipientsData || []).filter((r: any) => r.leads && r.leads.phone)
+    // Fetch campaign recipients with leads data
+    const recipientsSnap = await firebaseAdminDb
+      .collection("campaign_recipients")
+      .where("campaign_id", "==", campaignId)
+      .get()
+
+    const recipients = []
+    for (const recipientDoc of recipientsSnap.docs) {
+      const recipientData = recipientDoc.data() as any
+      const leadSnap = await firebaseAdminDb.collection("leads").doc(recipientData.lead_id).get()
+
+      if (leadSnap.exists) {
+        const leadData = leadSnap.data() as any
+        if (leadData?.phone) {
+          recipients.push({
+            id: recipientDoc.id,
+            ...recipientData,
+            leads: leadData,
+          })
+        }
+      }
+    }
 
     if (recipients.length === 0) {
       return NextResponse.json({ error: "No recipients with phone numbers" }, { status: 400 })
     }
 
+    // Throttle check: count SMS sent in last 30 minutes
     const THROTTLE_LIMIT = 10
     const windowMs = 30 * 60 * 1000
-    const windowStart = new Date(Date.now() - windowMs).toISOString()
+    const windowStart = new Date(Date.now() - windowMs)
 
-    const { data: recentCampaigns } = await supabase
-      .from("campaigns")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("type", "sms")
-      .gte("sent_at", windowStart)
+    const recentCampaignsSnap = await firebaseAdminDb
+      .collection("campaigns")
+      .where("user_id", "==", user.uid)
+      .where("type", "==", "sms")
+      .where("sent_at", ">=", Timestamp.fromDate(windowStart))
+      .get()
 
     let recentCount = 0
-    if (recentCampaigns && recentCampaigns.length > 0) {
-      const campaignIds = recentCampaigns.map((c) => c.id)
-      const { data: recentRecipients } = await supabase
-        .from("campaign_recipients")
-        .select("id")
-        .in("campaign_id", campaignIds)
-        .gte("sent_at", windowStart)
+    if (recentCampaignsSnap.docs.length > 0) {
+      const recentCampaignIds = recentCampaignsSnap.docs.map((doc) => doc.id)
 
-      recentCount = recentRecipients?.length || 0
+      const recentRecipientsSnap = await firebaseAdminDb
+        .collection("campaign_recipients")
+        .where("campaign_id", "in", recentCampaignIds)
+        .where("sent_at", ">=", Timestamp.fromDate(windowStart))
+        .get()
+      recentCount = recentRecipientsSnap.docs.length
     }
 
     if (recentCount + recipients.length > THROTTLE_LIMIT) {
@@ -96,15 +108,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { data: integration, error: integrationError } = await supabase
-      .from("user_integrations")
-      .select("user_key_enc, ultramsg_instance_enc, ultramsg_token_enc")
-      .eq("user_id", user.id)
-      .single()
+    // Fetch user integration for WhatsApp credentials
+    const integrationsSnap = await firebaseAdminDb
+      .collection("user_integrations")
+      .where("user_id", "==", user.uid)
+      .get()
 
-    if (integrationError || !integration) {
+    if (integrationsSnap.docs.length === 0) {
       return NextResponse.json({ error: "WhatsApp integration not configured" }, { status: 400 })
     }
+
+    const integration = integrationsSnap.docs[0].data()
 
     const userKeyBase64 = unwrapUserKey(integration.user_key_enc)
     const instanceId = decryptWithKey(userKeyBase64, integration.ultramsg_instance_enc)
@@ -115,11 +129,11 @@ export async function POST(request: NextRequest) {
     const errors: { phone: string; error: string }[] = []
 
     for (const r of recipients) {
-      const lead = r.leads
-      const recipientPhone = lead.phone as string
-      const recipientName = lead.name || recipientPhone
+      const lead = r.leads as any
+      const recipientPhone = lead?.phone as string
+      const recipientName = lead?.name || recipientPhone
 
-      const message = (campaign.content || "").replace(/{name}/g, recipientName).replace(/{business_name}/g, recipientName)
+      const message = (campaign?.content || "").replace(/{name}/g, recipientName).replace(/{business_name}/g, recipientName)
 
       try {
         const result = await sendUltraMsgMessage(recipientPhone, message, instanceId, token)
@@ -137,27 +151,35 @@ export async function POST(request: NextRequest) {
       await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 2000))
     }
 
-    const now = new Date().toISOString()
+    const now = Timestamp.now()
 
-    await supabase
-      .from("campaigns")
-      .update({ status: "sent", sent_at: now, updated_at: now })
-      .eq("id", campaignId)
-      .eq("user_id", user.id)
+    // Update campaign status
+    await firebaseAdminDb.collection("campaigns").doc(campaignId).update({
+      status: "sent",
+      sent_at: now,
+      updated_at: now,
+    })
 
-    await supabase
-      .from("campaign_recipients")
-      .update({ status: "sent", sent_at: now })
-      .eq("campaign_id", campaignId)
+    // Batch update all campaign_recipients
+    const batch = firebaseAdminDb.batch()
+    for (const recipient of recipients) {
+      batch.update(firebaseAdminDb.collection("campaign_recipients").doc(recipient.id), {
+        status: "sent",
+        sent_at: now,
+      })
+    }
+    await batch.commit()
 
-    const { data: profile } = await supabase.from("profiles").select("sms_credits").eq("id", user.id).single()
+    // Update user profile credits
+    const profileSnap = await firebaseAdminDb.collection("profiles").doc(user.uid).get()
 
-    if (profile) {
-      const remaining = Math.max(0, (profile.sms_credits || 0) - sent)
-      await supabase
-        .from("profiles")
-        .update({ sms_credits: remaining, updated_at: now })
-        .eq("id", user.id)
+    if (profileSnap.exists) {
+      const profile = profileSnap.data() as any
+      const remaining = Math.max(0, (profile?.sms_credits || 0) - sent)
+      await firebaseAdminDb.collection("profiles").doc(user.uid).update({
+        sms_credits: remaining,
+        updated_at: now,
+      })
     }
 
     return NextResponse.json({ success: true, sent, failed, errors })

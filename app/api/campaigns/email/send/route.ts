@@ -1,78 +1,85 @@
 import { NextRequest, NextResponse } from "next/server"
 import nodemailer from "nodemailer"
-import { createClient } from "@/lib/supabase/server"
+import { getServerUser } from "@/lib/firebase/server-auth"
+import { firebaseAdminDb } from "@/lib/firebase/admin"
+import { Timestamp } from "firebase-admin/firestore"
 import { decryptWithKey, unwrapUserKey } from "@/lib/encryption"
+import { withValidation, sendCampaignSchema, ValidatedRequest, getValidatedData } from "@/lib/validation"
 
-interface SendCampaignBody {
-  campaignId: string
-}
+export const POST = withValidation(
+  async (request: ValidatedRequest) => {
+    try {
+      const { body } = getValidatedData(request)
+      const { campaignId } = body
 
-export async function POST(request: NextRequest) {
-  try {
-    const { campaignId } = (await request.json()) as SendCampaignBody
-
-    if (!campaignId) {
-      return NextResponse.json({ error: "campaignId is required" }, { status: 400 })
-    }
-
-    const supabase = await createClient()
-    const {
-      data: { user },
-    } = await supabase.auth.getUser()
-
+    const user = await getServerUser()
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
     }
 
-    const { data: campaign, error: campaignError } = await supabase
-      .from("campaigns")
-      .select("*")
-      .eq("id", campaignId)
-      .eq("user_id", user.id)
-      .eq("type", "email")
-      .single()
+    // Fetch campaign from Firestore
+    const campaignSnap = await firebaseAdminDb.collection("campaigns").doc(campaignId).get()
 
-    if (campaignError || !campaign) {
+    if (!campaignSnap.exists) {
       return NextResponse.json({ error: "Campaign not found" }, { status: 404 })
     }
 
-    const { data: recipientsData, error: recipientsError } = await supabase
-      .from("campaign_recipients")
-      .select("*, leads(*)")
-      .eq("campaign_id", campaignId)
+    const campaign = campaignSnap.data() as any
 
-    if (recipientsError) {
-      console.error("Error fetching recipients:", recipientsError)
-      return NextResponse.json({ error: "Failed to load recipients" }, { status: 500 })
+    // Verify campaign belongs to user and is email type
+    if (campaign?.user_id !== user.uid || campaign?.type !== "email") {
+      return NextResponse.json({ error: "Campaign not found" }, { status: 404 })
     }
 
-    const recipients = (recipientsData || []).filter((r: any) => r.leads && r.leads.email)
+    // Fetch campaign recipients with leads data
+    const recipientsSnap = await firebaseAdminDb
+      .collection("campaign_recipients")
+      .where("campaign_id", "==", campaignId)
+      .get()
+
+    const recipients = []
+    for (const recipientDoc of recipientsSnap.docs) {
+      const recipientData = recipientDoc.data() as any
+      const leadSnap = await firebaseAdminDb.collection("leads").doc(recipientData.lead_id).get()
+
+      if (leadSnap.exists) {
+        const leadData = leadSnap.data() as any
+        if (leadData?.email) {
+          recipients.push({
+            id: recipientDoc.id,
+            ...recipientData,
+            leads: leadData,
+          })
+        }
+      }
+    }
 
     if (recipients.length === 0) {
       return NextResponse.json({ error: "No recipients with email" }, { status: 400 })
     }
 
+    // Throttle check: count emails sent in last 30 minutes
     const THROTTLE_LIMIT = 10
     const windowMs = 30 * 60 * 1000
-    const windowStart = new Date(Date.now() - windowMs).toISOString()
+    const windowStart = new Date(Date.now() - windowMs)
 
-    const { data: recentCampaigns } = await supabase
-      .from("campaigns")
-      .select("id")
-      .eq("user_id", user.id)
-      .eq("type", "email")
-      .gte("sent_at", windowStart)
+    const recentCampaignsSnap = await firebaseAdminDb
+      .collection("campaigns")
+      .where("user_id", "==", user.uid)
+      .where("type", "==", "email")
+      .where("sent_at", ">=", Timestamp.fromDate(windowStart))
+      .get()
 
     let recentCount = 0
-    if (recentCampaigns && recentCampaigns.length > 0) {
-      const campaignIds = recentCampaigns.map((c) => c.id)
-      const { data: recentRecipients } = await supabase
-        .from("campaign_recipients")
-        .select("id")
-        .in("campaign_id", campaignIds)
-        .gte("sent_at", windowStart)
+    if (recentCampaignsSnap.docs.length > 0) {
+      const recentCampaignIds = recentCampaignsSnap.docs.map((doc) => doc.id)
 
-      recentCount = recentRecipients?.length || 0
+      const recentRecipientsSnap = await firebaseAdminDb
+        .collection("campaign_recipients")
+        .where("campaign_id", "in", recentCampaignIds)
+        .where("sent_at", ">=", Timestamp.fromDate(windowStart))
+        .get()
+      recentCount = recentRecipientsSnap.docs.length
     }
 
     if (recentCount + recipients.length > THROTTLE_LIMIT) {
@@ -85,15 +92,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { data: integration, error: integrationError } = await supabase
-      .from("user_integrations")
-      .select("user_key_enc, gmail_address_enc, gmail_app_password_enc")
-      .eq("user_id", user.id)
-      .single()
+    // Fetch user integration for Gmail credentials
+    const integrationsSnap = await firebaseAdminDb
+      .collection("user_integrations")
+      .where("user_id", "==", user.uid)
+      .get()
 
-    if (integrationError || !integration) {
+    if (integrationsSnap.docs.length === 0) {
       return NextResponse.json({ error: "Email integration not configured" }, { status: 400 })
     }
+
+    const integration = integrationsSnap.docs[0].data()
 
     const userKeyBase64 = unwrapUserKey(integration.user_key_enc)
     const gmailAddress = decryptWithKey(userKeyBase64, integration.gmail_address_enc)
@@ -112,13 +121,13 @@ export async function POST(request: NextRequest) {
     const errors: { email: string; error: string }[] = []
 
     for (const r of recipients) {
-      const lead = r.leads
-      const recipientEmail = lead.email as string
-      const recipientName = lead.name || recipientEmail
+      const lead = r.leads as any
+      const recipientEmail = lead?.email as string
+      const recipientName = lead?.name || recipientEmail
 
-      const subject = (campaign.subject || "").replace(/{name}/g, recipientName).replace(/{business_name}/g, recipientName)
+      const subject = (campaign?.subject || "").replace(/{name}/g, recipientName).replace(/{business_name}/g, recipientName)
 
-      const htmlContent = (campaign.content || "").replace(/{name}/g, recipientName).replace(/{business_name}/g, recipientName)
+      const htmlContent = (campaign?.content || "").replace(/{name}/g, recipientName).replace(/{business_name}/g, recipientName)
 
       try {
         await transporter.sendMail({
@@ -136,27 +145,35 @@ export async function POST(request: NextRequest) {
       await new Promise((resolve) => setTimeout(resolve, 1000 + Math.random() * 2000))
     }
 
-    const now = new Date().toISOString()
+    const now = Timestamp.now()
 
-    await supabase
-      .from("campaigns")
-      .update({ status: "sent", sent_at: now, updated_at: now })
-      .eq("id", campaignId)
-      .eq("user_id", user.id)
+    // Update campaign status
+    await firebaseAdminDb.collection("campaigns").doc(campaignId).update({
+      status: "sent",
+      sent_at: now,
+      updated_at: now,
+    })
 
-    await supabase
-      .from("campaign_recipients")
-      .update({ status: "sent", sent_at: now })
-      .eq("campaign_id", campaignId)
+    // Batch update all campaign_recipients
+    const batch = firebaseAdminDb.batch()
+    for (const recipient of recipients) {
+      batch.update(firebaseAdminDb.collection("campaign_recipients").doc(recipient.id), {
+        status: "sent",
+        sent_at: now,
+      })
+    }
+    await batch.commit()
 
-    const { data: profile } = await supabase.from("profiles").select("email_credits").eq("id", user.id).single()
+    // Update user profile credits
+    const profileSnap = await firebaseAdminDb.collection("profiles").doc(user.uid).get()
 
-    if (profile) {
-      const remaining = Math.max(0, (profile.email_credits || 0) - sent)
-      await supabase
-        .from("profiles")
-        .update({ email_credits: remaining, updated_at: now })
-        .eq("id", user.id)
+    if (profileSnap.exists) {
+      const profile = profileSnap.data() as any
+      const remaining = Math.max(0, (profile?.email_credits || 0) - sent)
+      await firebaseAdminDb.collection("profiles").doc(user.uid).update({
+        email_credits: remaining,
+        updated_at: now,
+      })
     }
 
     return NextResponse.json({ success: true, sent, failed, errors })
@@ -164,4 +181,7 @@ export async function POST(request: NextRequest) {
     console.error("Email campaign send error:", err)
     return NextResponse.json({ error: err.message ?? "Unexpected error" }, { status: 500 })
   }
-}
+}, {
+  bodySchema: sendCampaignSchema,
+  validateHeaders: true,
+})
