@@ -24,7 +24,7 @@ export function addCorrelationHeaders(response: NextResponse, correlationId: str
 // Middleware wrapper for API routes
 export function withRequestTracking<T extends any[], R>(
   handler: (request: NextRequest, ...args: T) => Promise<NextResponse>,
-  endpoint: string
+  endpoint?: string
 ) {
   return async (request: NextRequest, ...args: T): Promise<NextResponse> => {
     const startTime = Date.now();
@@ -41,7 +41,7 @@ export function withRequestTracking<T extends any[], R>(
       const { logger } = await import('./logger');
       logger.info('Request completed successfully', {
         requestId: correlationId,
-        endpoint,
+        endpoint: endpoint || request.nextUrl.pathname,
         duration,
         metadata: {
           method: request.method,
@@ -63,7 +63,7 @@ export function withRequestTracking<T extends any[], R>(
         request,
         {
           requestId: correlationId,
-          endpoint,
+          endpoint: endpoint || request.nextUrl.pathname,
           duration
         }
       );

@@ -210,7 +210,7 @@ export function createApiHandler(
         correlationId
       );
     }
-  }, request.nextUrl.pathname);
+  });
 }
 
 /**
