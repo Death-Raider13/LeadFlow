@@ -1,0 +1,37 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper: is the user logged in?
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Profiles: Owner can read/write
+    match /profiles/{userId} {
+      allow read, write: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Leads: TEMPORARILY ALLOW ALL READS FOR DEBUGGING
+    // We will tighten this back to owner-only once we confirm the leads appear.
+    match /leads/{leadId} {
+      allow read: if true; 
+      allow write: if isSignedIn() && (request.resource.data.user_id == request.auth.uid || resource.data.user_id == request.auth.uid);
+    }
+
+    // Campaigns: Owner can read/write/delete
+    match /campaigns/{campaignId} {
+      allow read, write: if isSignedIn() && (request.resource.data.user_id == request.auth.uid || resource.data.user_id == request.auth.uid);
+    }
+
+    // Recipients: Logged-in users can manage
+    match /campaign_recipients/{recId} {
+      allow read, write: if isSignedIn();
+    }
+
+    // Global Deny
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

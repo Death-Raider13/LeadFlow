@@ -25,20 +25,38 @@ export function CampaignForm({ type, campaign, userId }: CampaignFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [leads, setLeads] = useState<Lead[]>([])
+  const [leadsError, setLeadsError] = useState<string | null>(null)
   const [selectedLeads, setSelectedLeads] = useState<string[]>([])
   const router = useRouter()
 
   useEffect(() => {
     const fetchLeads = async () => {
-      let q = query(collection(firebaseDb, "leads"), where("user_id", "==", userId))
-      if (type === "email") {
-        q = query(q, where("email", "!=", null))
-      } else {
-        q = query(q, where("phone", "!=", null))
+      try {
+        setLeadsError(null)
+        console.log("Fetching all leads for user:", userId)
+        
+        // Fetch all leads for this user first
+        const q = query(collection(firebaseDb, "leads"), where("user_id", "==", userId))
+        const snap = await getDocs(q)
+        
+        const allLeads = snap.docs.map((d) => ({ id: d.id, ...d.data() })) as Lead[]
+        console.log(`Total leads found for user: ${allLeads.length}`)
+        
+        // Filter locally to ensure no Firestore query quirks block the results
+        const filteredLeads = allLeads.filter(lead => {
+          if (type === "email") {
+            return lead.email && lead.email.trim() !== ""
+          } else {
+            return lead.phone && lead.phone.trim() !== ""
+          }
+        })
+        
+        console.log(`Leads with ${type === "email" ? "emails" : "phones"}: ${filteredLeads.length}`)
+        setLeads(filteredLeads)
+      } catch (err: any) {
+        console.error("Error fetching leads:", err)
+        setLeadsError(err.message || "Failed to load leads.")
       }
-      q = query(q, orderBy("name"))
-      const snap = await getDocs(q)
-      setLeads(snap.docs.map((d) => ({ id: d.id, ...d.data() })) || [])
     }
     fetchLeads()
   }, [type, userId])
@@ -173,7 +191,17 @@ export function CampaignForm({ type, campaign, userId }: CampaignFormProps) {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {leads.length > 0 ? (
+            {leadsError ? (
+              <div className="text-center py-6">
+                <p className="text-destructive text-sm font-medium mb-1">Error fetching leads</p>
+                <p className="text-muted-foreground text-xs">{leadsError}</p>
+                {leadsError.includes("index") && (
+                  <p className="mt-2 text-xs text-primary">
+                    Check your browser console for a link to create the required Firestore index.
+                  </p>
+                )}
+              </div>
+            ) : leads.length > 0 ? (
               <div className="space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-border">
                   <div className="flex items-center gap-2">

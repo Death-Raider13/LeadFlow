@@ -13,14 +13,22 @@ export default async function EmailCampaignsPage() {
     redirect("/auth/login")
   }
 
-  const campaignsSnap = await firebaseAdminDb
-    .collection("campaigns")
-    .where("user_id", "==", user.uid)
-    .where("type", "==", "email")
-    .orderBy("created_at", "desc")
-    .get()
-  const campaignsData = campaignsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  const campaigns = serializeFirestoreData(campaignsData)
+  let campaigns: any[] = []
+  let queryError: string | null = null
+
+  try {
+    const campaignsSnap = await firebaseAdminDb
+      .collection("campaigns")
+      .where("user_id", "==", user.uid)
+      .where("type", "==", "email")
+      .orderBy("created_at", "desc")
+      .get()
+    const campaignsData = campaignsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    campaigns = serializeFirestoreData(campaignsData)
+  } catch (error: any) {
+    console.error("Failed to fetch email campaigns:", error)
+    queryError = error?.message || "Failed to load campaigns"
+  }
 
   return (
     <div className="space-y-6">
@@ -36,6 +44,13 @@ export default async function EmailCampaignsPage() {
           </Link>
         </Button>
       </div>
+
+      {queryError && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+          <p className="font-medium">Error loading campaigns</p>
+          <p className="mt-1 text-xs opacity-80">{queryError}</p>
+        </div>
+      )}
 
       <CampaignsList campaigns={campaigns} type="email" />
     </div>

@@ -14,15 +14,22 @@ export default async function LeadsPage() {
   }
 
   const userId = decodedUser.uid
+  let leads: any[] = []
+  let queryError: string | null = null
 
-  const leadsSnap = await firebaseAdminDb
-    .collection("leads")
-    .where("user_id", "==", userId)
-    .orderBy("created_at", "desc")
-    .get()
+  try {
+    const leadsSnap = await firebaseAdminDb
+      .collection("leads")
+      .where("user_id", "==", userId)
+      .orderBy("created_at", "desc")
+      .get()
 
-  const leadsData = leadsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
-  const leads = serializeFirestoreData(leadsData)
+    const leadsData = leadsSnap.docs.map((doc) => ({ id: doc.id, ...doc.data() }))
+    leads = serializeFirestoreData(leadsData)
+  } catch (error: any) {
+    console.error("Error fetching leads:", error)
+    queryError = error?.message || "Failed to load leads"
+  }
 
   return (
     <div className="space-y-6">
@@ -52,6 +59,18 @@ export default async function LeadsPage() {
           </Button>
         </div>
       </div>
+
+      {queryError && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-4 text-sm text-destructive">
+          <p className="font-medium">Error loading leads</p>
+          <p className="mt-1 text-xs opacity-80">{queryError}</p>
+          {queryError.includes("index") && (
+            <p className="mt-2 text-xs text-primary font-medium">
+              This query requires a composite index. Check your server logs or Firebase console to create it.
+            </p>
+          )}
+        </div>
+      )}
 
       <LeadsList initialLeads={leads || []} />
     </div>

@@ -41,14 +41,19 @@ export default async function DashboardLayout({
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
       const startOfNextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1)
 
-      const leadsSnap = await firebaseAdminDb
-        .collection("leads")
-        .where("user_id", "==", user.id)
-        .where("created_at", ">=", Timestamp.fromDate(startOfMonth))
-        .where("created_at", "<", Timestamp.fromDate(startOfNextMonth))
-        .get()
+      try {
+        const leadsSnap = await firebaseAdminDb
+          .collection("leads")
+          .where("user_id", "==", user.id)
+          .where("created_at", ">=", Timestamp.fromDate(startOfMonth))
+          .where("created_at", "<", Timestamp.fromDate(startOfNextMonth))
+          .get()
 
-      leadsUsedThisMonth = leadsSnap.size
+        leadsUsedThisMonth = leadsSnap.size
+      } catch (error) {
+        console.error("Error fetching lead usage count:", error)
+        leadsUsedThisMonth = 0
+      }
     }
   }
 
